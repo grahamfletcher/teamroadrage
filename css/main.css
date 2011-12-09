@@ -1,0 +1,226 @@
+body {
+    background-color: #ebebeb;
+    font-family: Verdana, Arial, "Lucida Grande";
+    margin: 0;
+}
+
+header {
+    background-image: url(../images/banner_background.png);
+    background-repeat: repeat-x;
+}
+
+header > div {
+    background-image: url(../images/banner.png);
+    height: 326px;
+    margin: auto;
+    width: 800px;
+}
+
+header > div > h1 {
+    color: #333344;
+    font-size: 36px;
+    font-weight: normal;
+    letter-spacing: 1px;
+    margin-top: 0px;
+    padding-left: 110px;
+    padding-top: 125px;
+    vertical-align: middle;
+}
+
+header + p {
+    color: #244183;
+    font-size: 24px;
+    margin-bottom: 18px;
+    margin-top: 25px;
+    text-align: center;
+}
+
+nav > ul {
+    margin: auto;
+    height: 60px;
+    list-style-type: none;
+    padding: 0;
+    width: 840px;
+}
+
+nav > ul > li {
+    padding-left: 35px;
+    padding-top: 15px;
+    font-size: 20px;
+    float: left;
+}
+
+nav > ul > li > a {
+    text-decoration: none;
+    color: #3a3a3a;
+}
+
+nav + div {
+    background-color: white;
+    border-color: #999;
+    border-bottom-style: solid;
+    border-top-style: solid;
+    border-width: 1px;
+    height: 630px;
+    margin: auto;
+    padding: 20px;
+    width: 840px;
+}
+
+section > h3 {
+    color: #072453;
+    font-size: 19px;
+    font-weight: normal;
+    line-height: 24px;
+    margin-bottom: 5px;
+}
+
+section > p {
+    font-size: 14px;
+    line-height: 22px;
+    margin-bottom: 20px;
+}
+
+ul.document_links {
+    height: 200px;
+    list-style-type: none;
+    margin: 20px;
+    padding: 10px;
+}
+
+ul.document_links > li > div {
+    background-repeat: no-repeat;
+    cursor: pointer;
+    float:left;
+    height: 20px;
+    padding-top: 128px;
+    text-align: center;
+    width: 128px;
+}
+
+ul.document_links > li > div.word {
+    background-image: url(../images/icons/Mimes_White_application-msword.png);
+}
+
+ul.document_links > li > div.pdf {
+    background-image: url(../images/icons/Mimes_White_application-pdf.png);
+}
+
+ul.photo_stack {
+    height: 200px;
+    list-style-type: none;
+    margin: 20px;
+    padding: 10px;
+}
+
+ul.photo_stack > li {
+    background-color: #999;
+/*    background-color: #fcfcfc;
+    border-bottom: 1.5px solid #999;
+    border-left: 2px solid #aaa;
+    border-top: 0.5px solid #ddd;*/
+    -moz-transform: rotate(-5deg);
+    -o-transform: rotate(-5deg);
+    padding: 0px 0.5px 1px 2px;
+    position: relative;
+    -webkit-transform: rotate(-5deg);
+}
+
+ul.photo_stack > li:first-child {
+/*    border-right: 1px solid #ccc;*/
+    -moz-transform: rotate(10deg);
+    -o-transform: rotate(10deg);
+    -webkit-transform: rotate(10deg);
+    margin-bottom: -210px;
+}
+
+ul.photo_stack > li > div {
+    background-color: #fcfcfc;
+    padding: 10px;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.multimedia_photo_icon {
+    background-image: url(../images/DSLR.svg);
+    height: 180px;
+    margin-right: 25px;
+    width: 165px;
+}
+
+.multimedia_sermon_icon {
+    background-image: url(../images/iPodNano.svg);
+    height: 180px;
+    margin-right: 25px;
+    width: 165px;
+}
+
+.multimedia_video_icon {
+    background-image: url(../images/clapboard.svg);
+    height: 180px;
+    margin-right: 25px;
+    width: 165px;
+}
+
+div.promos {
+    height: 100px;
+    margin: 60px auto auto;
+    width: 880px;
+}
+
+div.promos > div {
+    background-color: white;
+    float: left;
+    height: 100%;
+    overflow: hidden;
+    width: 291px;
+}
+
+div.promos > div:first-child {
+    background-image: url(../images/promo_JCA_Live2011.svg);
+    border-bottom-left-radius: 20px;
+    border-top-left-radius: 20px;
+}
+
+div.promos > div:first-child + div {
+    background-image: url(../images/promo_FamilyGroups.svg);
+    border-color: #ebebeb;
+    border-left-style: solid;
+    border-right-style: solid;
+    border-width: 3px;
+}
+
+div.promos > div:last-child {
+    background-image: url(../images/promo_Quest.svg);
+    border-bottom-right-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+div.promos > div > div {
+    background-image: url(../images/promo_shine.svg);
+    height: 100%;
+    width: 100%;
+}
+
+div.promos > div:first-child > div {
+    background-position: left;
+}
+
+div.promos > div:first-child + div > div {
+    background-position: center;
+}
+
+div.promos > div:last-child > div  {
+    background-position: right;
+}
+
+footer {
+    margin: 120px;
+    text-align: center;
+}
