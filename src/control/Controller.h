@@ -44,6 +44,9 @@ public slots:
     /* ReactionTimeTracker : this */
     void updateReactionTime( float time );    // gotReactionTime()
 
+private slots:
+    void startThreads();
+
 private:
     void connectSignalsAndSlots();
 

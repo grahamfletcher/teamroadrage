@@ -38,7 +38,28 @@ Controller::Controller( QObject *parent ) : QObject( parent ) {
     /* Connect a zillion signals and slots to make everything work */
     connectSignalsAndSlots();
     
-    /* Start the threads */
+    QTimer::singleShot( 10, this, SLOT( startThreads() ) );
+}
+
+Controller::~Controller() {
+    androidDevice->shouldContinue =     false;
+    distanceSensor->shouldContinue =    false;
+    humiditySensor->shouldContinue =    false;
+    rainSensor->shouldContinue =        false;
+    speedSensor->shouldContinue =       false;
+    temperatureSensor->shouldContinue = false;
+    laneDetector->shouldContinue =      false;
+
+    androidDevice->wait();
+    distanceSensor->wait();
+    humiditySensor->wait();
+    rainSensor->wait();
+    speedSensor->wait();
+    temperatureSensor->wait();
+    laneDetector->wait();
+}
+
+void Controller::startThreads() {
     androidDevice->start();
     distanceSensor->start();
     humiditySensor->start();
@@ -46,33 +67,6 @@ Controller::Controller( QObject *parent ) : QObject( parent ) {
     speedSensor->start();
     temperatureSensor->start();
     laneDetector->start();
-
-    qDebug() << "UI should be unfrozen now.";
-}
-
-Controller::~Controller() {
-    androidDevice->shouldContinue = false;
-    distanceSensor->shouldContinue = false;
-    humiditySensor->shouldContinue = false;
-    rainSensor->shouldContinue = false;
-    speedSensor->shouldContinue = false;
-    temperatureSensor->shouldContinue = false;
-    laneDetector->shouldContinue = false;
-
-    androidDevice->wait();
-    qDebug() << "1";
-    distanceSensor->wait();
-    qDebug() << "2";
-    humiditySensor->wait();
-    qDebug() << "3";
-    rainSensor->wait();
-    qDebug() << "4";
-    speedSensor->wait();
-    qDebug() << "5";
-    temperatureSensor->wait();
-    qDebug() << "6";
-    laneDetector->wait();
-    qDebug() << "7";
 }
 
 void Controller::connectSignalsAndSlots() {
