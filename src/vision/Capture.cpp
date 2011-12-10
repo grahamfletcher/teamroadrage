@@ -4,26 +4,34 @@
 #include "Capture.h"
 
 Capture::Capture( QObject *parent ) : QThread( parent ) {
-    inputVideoPath = settings->value( "VideoCapture/InputVideoPath" ).toString();
-    outputVideoPath = settings->value( "VideoCapture/OutputVideoPath" ).toString();
+    //inputVideoPath = settings->value( "VideoCapture/InputVideoPath" ).toString();
+    //outputVideoPath = settings->value( "VideoCapture/OutputVideoPath" ).toString();
 
-    capture = cv::VideoCapture( inputVideoPath.toLocal8Bit().data() );
+    capture = cv::VideoCapture( 0 );//cv::VideoCapture( inputVideoPath.toLocal8Bit().data() );
 
     if ( !capture.isOpened() ) {
-        qDebug() << "Could not open video file: " << inputVideoPath;
+        qDebug() << "Could not open camera";// video file: " << inputVideoPath;
     }
 
-    captureCrop = cv::Rect_<int>( 0,
-                                  settings->value( "VideoCapture/CropTop" ).toInt(),
-                                  (int) capture.get( CV_CAP_PROP_FRAME_WIDTH ),
-                                  (int) capture.get( CV_CAP_PROP_FRAME_HEIGHT ) -
-                                  settings->value( "VideoCapture/CropBottom" ).toInt() -
-                                  settings->value( "VideoCapture/CropTop" ).toInt() );
+    capture.set( CV_CAP_PROP_FRAME_WIDTH, settings->value( "Capture/FrameWidth" ).toInt() );
+    capture.set( CV_CAP_PROP_FRAME_HEIGHT, settings->value( "Capture/FrameHeight" ).toInt() );
 
+    qDebug() << capture.get( CV_CAP_PROP_FRAME_WIDTH );
+    qDebug() << capture.get( CV_CAP_PROP_FRAME_HEIGHT );
+
+    captureCrop = cv::Rect_<int>( settings->value( "Capture/CropX" ).toInt(),
+                                  settings->value( "Capture/CropY" ).toInt(),
+                                  settings->value( "Capture/CropWidth" ).toInt(),
+                                  settings->value( "Capture/CropHeight" ).toInt() );
+    
     captureDimensions = cv::Size( captureCrop.width, captureCrop.height );
+
     captureFourCC = (int) capture.get( CV_CAP_PROP_FOURCC );
     captureFPS = (int) capture.get( CV_CAP_PROP_FPS );
 
+    qDebug() << captureFPS;
+
+    captureFPS = 15;
 
     start();
 }
@@ -61,8 +69,8 @@ bool Capture::getNextFrame() {
     if ( !capture.read( currentFrame ) ) {
         returnValue = false;
     } else {
-        currentFrame = currentFrame( cv::Rect( 0, 50, 960, 540 ) );
-        emit newFrameAvailable( currentFrame );
+        currentFrame = currentFrame( captureCrop );
+        emit gotNewFrame( currentFrame, ORIGINAL );
     }
     currentFrameMutex.unlock();
 
@@ -71,7 +79,8 @@ bool Capture::getNextFrame() {
 
 void Capture::run() {
     while( getNextFrame() ) {
-        usleep(10000000 / captureFPS);
+        usleep(1000000 / captureFPS);
         //sleep( 1 );
     }
+    qDebug() << "End of Capture.run()";
 }

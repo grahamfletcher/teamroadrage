@@ -16,6 +16,15 @@ SpeedSensor::~SpeedSensor() {
 }
 
 void SpeedSensor::getSpeedFromOBD() {
+    /* BEGIN TESTING CODE */
+    float d = 10;
+
+    while ( 1 ) {
+        usleep( 70000 );
+        emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
+    }
+    /* END TESTING CODE */
+
     unsigned char cmd_010D1[] = { '0', '1', '0', 'D', '1', '\r' };
     char obdResult[9];
 

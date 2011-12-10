@@ -16,6 +16,15 @@ HumiditySensor::~HumiditySensor() {
 }
 
 void HumiditySensor::getHumidityFromArduino() {
+    /* BEGIN TESTING CODE */
+    float d = 10;
+
+    while ( 1 ) {
+        emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
+        usleep( 1000000 );
+    }
+    /* END TESTING CODE */
+
     char cmd[] = { 'h', '\r' };
     char result[1];
 

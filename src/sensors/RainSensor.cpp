@@ -18,6 +18,15 @@ RainSensor::~RainSensor() {
 }
 
 void RainSensor::getRainFromArduino() {
+    /* BEGIN TESTING CODE */
+    float d = 0;
+
+    while ( 1 ) {
+        usleep( 70000 );
+        emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
+    }
+    /* END TESTING CODE */
+
     char cmd[] = { 'r', '\r' };
     char result[1];
 

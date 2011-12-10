@@ -20,7 +20,7 @@
 #define DEVICE_PATH "/dev/serial/by-id/usb-Arduino__www.arduino.cc__Arduino_Mega_ADK_64934333235351C0F160-if00"
 
 ArduinoDevice::ArduinoDevice( QObject *parent ) : QObject( parent ) {
-    setupSerial();
+//    setupSerial();
 }
 
 ArduinoDevice::~ArduinoDevice() {

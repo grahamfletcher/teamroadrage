@@ -1,6 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <opencv2/core/core.hpp>
 #include <QMutex>
 #include <QObject>
 #include <QSettings>

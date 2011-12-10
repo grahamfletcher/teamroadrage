@@ -9,8 +9,6 @@
 #include <QThread>
 #include <QWaitCondition>
 
-using namespace cv;
-
 class Capture : public QThread
 {
     Q_OBJECT
@@ -28,7 +26,7 @@ public:
     //QWaitCondition newFrameAvailable;
 
 signals:
-    void newFrameAvailable( const Mat &mat );
+    void gotNewFrame( cv::Mat &mat, int type );
 
 protected:
     void run();

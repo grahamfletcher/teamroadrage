@@ -21,7 +21,7 @@ DistanceSensor::DistanceSensor( QObject *parent = 0 ) : QThread( parent ) {
     buf.resize( BUF_SIZE );
 
     /* Create and setup the FTDI context */
-    setupFTDI();
+//    setupFTDI();
 
     /* Flush the read and write buffers, for safety */
 //    ftdi_usb_purge_buffers( ftdi );

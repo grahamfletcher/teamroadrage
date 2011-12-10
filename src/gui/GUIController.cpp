@@ -69,3 +69,7 @@ void GUIController::updateFollowingVehicleAcceleration( float acceleration ) {
 void GUIController::updateReactionTime( float time ) {
     inspectorWindow->setReactionTime( time );
 }
+
+void GUIController::updateCurrentFrame( cv::Mat &frame, int type ) {
+    videoWindow->updateVideoFrame( frame, type );
+}

@@ -31,6 +31,9 @@ Controller::Controller( QObject *parent, GUIController *guiController ) : QObjec
     capture             = new Capture( NULL );
     laneDetector        = new LaneDetector( this );
     vehicleDetector     = new VehicleDetector( this );
+
+    /* Connect a zillion signals and slots to make everything work */
+    connectSignalsAndSlots();
 }
 
 Controller::~Controller() {
@@ -99,7 +102,7 @@ void Controller::connectSignalsAndSlots() {
     QObject::connect( speedSensor,          SIGNAL( gotReading( float ) ),
                       guiController,        SLOT( updateRawFollowingVehicleVelocity( float ) ) );
     QObject::connect( temperatureSensor,    SIGNAL( gotReading( float ) ),
-                      guiController,        SLOT( updateTemperature( float ) ) );
+                      guiController,        SLOT( updateTemperature( float ) ), Qt::DirectConnection );
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotTimeHeadway( float ) ),
                       guiController,        SLOT( updateTimeHeadway( float ) ) );
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotDistanceHeadway( float ) ),
@@ -112,6 +115,8 @@ void Controller::connectSignalsAndSlots() {
                       guiController,        SLOT( updateFollowingVehicleVelocity( float ) ) );
     QObject::connect( reactionTimeTracker,  SIGNAL( gotReactionTime( float ) ),
                       guiController,        SLOT( updateReactionTime( float ) ) );
+    QObject::connect( capture,              SIGNAL( gotNewFrame( cv::Mat&, int ) ),
+                      guiController,        SLOT( updateCurrentFrame( cv::Mat&, int ) ) );//, Qt::DirectConnection );
 
     /* Capture slots */
 

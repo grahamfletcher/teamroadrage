@@ -3,3 +3,4 @@
 moc/*
 bin/*
 obj/*
+*.swp

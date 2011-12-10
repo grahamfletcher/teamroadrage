@@ -7,7 +7,7 @@
 #include "MatToQImage.h"
 #include "VideoWindow.h"
 
-VideoWindow::VideoWindow( QWidget *parent = 0 ) : QDialog( parent ) {
+VideoWindow::VideoWindow( QWidget *parent = 0 ) : QDialog( parent ), videoSelection( 0 ) {
 
     QComboBox *comboBox = new QComboBox();
     comboBox->insertItem( ORIGINAL, "Original" );
@@ -39,6 +39,8 @@ void VideoWindow::comboBoxChanged( int index ) {
 
 void VideoWindow::updateVideoFrame( cv::Mat &frame, int type ) {
     QMutexLocker locker( &videoSelectionMutex );
+
+    qDebug() << "poo" << type;
 
     if ( type == videoSelection ) {
         videoLabel->setPixmap( QPixmap::fromImage( MatToQImage( frame ) ) );

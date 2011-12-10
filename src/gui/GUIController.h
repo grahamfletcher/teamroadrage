@@ -1,6 +1,7 @@
 #ifndef GUICONTROLLER_H
 #define GUICONTROLLER_H
 
+#include <opencv2/core/core.hpp>
 #include <QObject>
 #include <QSettings>
 
@@ -13,9 +14,6 @@ class GUIController : public QObject {
 public:
     GUIController( QObject *parent );
     ~GUIController();
-
-signals:
-    void gotVideoSelection( int index );
 
 public slots:
     /* Controller : Controller */
@@ -47,6 +45,9 @@ public slots:
 
     /* ReactionTimeTracker : Controller */
     void updateReactionTime( float time );    // gotReactionTime()
+
+    /* Capture : Controller */
+    void updateCurrentFrame( cv::Mat &frame, int type );
 
 private:
     InspectorWindow *inspectorWindow;
