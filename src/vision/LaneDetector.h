@@ -1,19 +1,44 @@
 #ifndef LANEDETECTOR_H
 #define LANEDETECTOR_H
 
-#include <opencv2/core/core.hpp>
-#include <QObject>
+#include <QReadWriteLock>
+#include <QThread>
 
-class LaneDetector : public QObject
+#include "globals.h"
+#include "CameraDevice.h"
+
+class LaneDetector : public QThread
 {
     Q_OBJECT
 
 public:
-    LaneDetector( QObject *parent );
+    LaneDetector( QObject *parent, CameraDevice *cameraDevice );
     ~LaneDetector();
 
+    bool shouldContinue;
+
 signals:
-    void gotFrame( cv::Mat &frame, int type );
+    void gotFrame( _Mat frame, int type, _QReadWriteLock lock );
+
+protected:
+    void run();
+
+private slots:
+    void getFrameFromCamera();
+    void convertToGrayscale();
+
+private:
+    CameraDevice *cameraDevice;
+
+    QReadWriteLock originalFrameLock;
+    cv::Mat originalFrame;
+    
+    QReadWriteLock grayscaleFrameLock;
+    cv::Mat grayscaleFrame;
+
+    QReadWriteLock ipmFrameLock;
+    cv::Mat ipmFrame;
+
 };
 
 #endif

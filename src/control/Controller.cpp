@@ -7,13 +7,16 @@
 
 #define BASE_SAFE_TIME_HEADWAY 1
 
-Controller::Controller( QObject *parent, GUIController *guiController ) : QObject( parent ), guiController( guiController ) {
+Controller::Controller( QObject *parent ) : QObject( parent ) {
+    guiController = new GUIController( parent );
+
     /* Start off with the minimum safe time headway */
     currentSafeTimeHeadway = BASE_SAFE_TIME_HEADWAY;
 
     /* Initialize devices */
     arduinoDevice =       new ArduinoDevice( this );
     androidDevice =       new AndroidDevice( NULL, arduinoDevice );
+    cameraDevice =        new CameraDevice( this );
     obdDevice =           new OBDDevice( this );
 
     /* Initialize sensors */
@@ -28,16 +31,48 @@ Controller::Controller( QObject *parent, GUIController *guiController ) : QObjec
     reactionTimeTracker = new ReactionTimeTracker( this );
 
     /* Initialize vision objects */
-    capture             = new Capture( NULL );
-    laneDetector        = new LaneDetector( this );
+    laneDetector        = new LaneDetector( NULL, cameraDevice );
     vehicleDetector     = new VehicleDetector( this );
+
 
     /* Connect a zillion signals and slots to make everything work */
     connectSignalsAndSlots();
+    
+    /* Start the threads */
+    androidDevice->start();
+    distanceSensor->start();
+    humiditySensor->start();
+    rainSensor->start();
+    speedSensor->start();
+    temperatureSensor->start();
+    laneDetector->start();
+
+    qDebug() << "UI should be unfrozen now.";
 }
 
 Controller::~Controller() {
+    androidDevice->shouldContinue = false;
+    distanceSensor->shouldContinue = false;
+    humiditySensor->shouldContinue = false;
+    rainSensor->shouldContinue = false;
+    speedSensor->shouldContinue = false;
+    temperatureSensor->shouldContinue = false;
+    laneDetector->shouldContinue = false;
 
+    androidDevice->wait();
+    qDebug() << "1";
+    distanceSensor->wait();
+    qDebug() << "2";
+    humiditySensor->wait();
+    qDebug() << "3";
+    rainSensor->wait();
+    qDebug() << "4";
+    speedSensor->wait();
+    qDebug() << "5";
+    temperatureSensor->wait();
+    qDebug() << "6";
+    laneDetector->wait();
+    qDebug() << "7";
 }
 
 void Controller::connectSignalsAndSlots() {
@@ -66,7 +101,6 @@ void Controller::connectSignalsAndSlots() {
                       androidDevice,        SLOT( updateReactionTime( float ) ) );
     QObject::connect( this,                 SIGNAL( gotSafeTimeHeadway( float ) ),
                       androidDevice,        SLOT( updateSafeTimeHeadway( float ) ) );
-
 
     /* HeadwayKalmanFilter slots */
     QObject::connect( vehicleDetector,      SIGNAL( gotLeadVehiclePresent( bool, bool ) ),
@@ -115,8 +149,8 @@ void Controller::connectSignalsAndSlots() {
                       guiController,        SLOT( updateFollowingVehicleVelocity( float ) ) );
     QObject::connect( reactionTimeTracker,  SIGNAL( gotReactionTime( float ) ),
                       guiController,        SLOT( updateReactionTime( float ) ) );
-    QObject::connect( capture,              SIGNAL( gotNewFrame( _Mat, int ) ),
-                      guiController,        SLOT( updateCurrentFrame( _Mat, int ) ) );
+    QObject::connect( laneDetector,         SIGNAL( gotFrame( _Mat, int, _QReadWriteLock ) ),
+                      guiController,        SLOT( updateCurrentFrame( _Mat, int, _QReadWriteLock ) ), Qt::QueuedConnection );
 
     /* Capture slots */
 

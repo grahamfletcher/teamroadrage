@@ -26,8 +26,10 @@ OBDDevice::OBDDevice( QObject *parent = 0 ) : QObject( parent ) {
 
 OBDDevice::~OBDDevice() {
     /* Release the FTDI context */
-    ftdi_usb_close( ftdi );
-    ftdi_free( ftdi );
+//    ftdi_usb_close( ftdi );
+//    ftdi_free( ftdi );
+
+    qDebug() << "~OBDDevice()";
 }
 
 void OBDDevice::setupFTDI() {

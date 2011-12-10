@@ -32,7 +32,7 @@ InspectorWindow::InspectorWindow( QWidget *parent = 0 ) : QDialog( parent ) {
 }
 
 InspectorWindow::~InspectorWindow() {
-
+    qDebug() << "~InspectorWindow()";
 }
 
 void InspectorWindow::setSafeTimeHeadway( float time ) {

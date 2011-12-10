@@ -1,6 +1,7 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QMutexLocker>
+#include <QReadLocker>
 #include <QVBoxLayout>
 
 #include "MatToQImage.h"
@@ -17,10 +18,13 @@ VideoWindow::VideoWindow( QWidget *parent = 0 ) : QDialog( parent ), videoSelect
                       this,     SLOT( comboBoxChanged( int ) ) );
 
     videoLabel = new QLabel( this );
+    videoLabel->setScaledContents( true );
 
     QVBoxLayout *layout = new QVBoxLayout( this );
     layout->addWidget( videoLabel );
     layout->addWidget( comboBox );
+
+    layout->setMargin( 0 );
 
     setLayout( layout );
 
@@ -28,7 +32,7 @@ VideoWindow::VideoWindow( QWidget *parent = 0 ) : QDialog( parent ), videoSelect
 }
 
 VideoWindow::~VideoWindow() {
-
+    qDebug() << "~VideoWindow()";
 }
 
 void VideoWindow::comboBoxChanged( int index ) {
@@ -36,10 +40,14 @@ void VideoWindow::comboBoxChanged( int index ) {
     videoSelection = index;
 }
 
-void VideoWindow::updateVideoFrame( cv::Mat *frame, int type ) {
+void VideoWindow::updateVideoFrame( cv::Mat *frame, int type, QReadWriteLock *lock ) {
     QMutexLocker locker( &videoSelectionMutex );
 
+    qDebug() << "VideoWindow::updateVideoFrame()" << type;
+
     if ( type == videoSelection ) {
+        QReadLocker locker( lock );
+
         videoLabel->setPixmap( QPixmap::fromImage( MatToQImage( *frame ) ) );
     }
 }

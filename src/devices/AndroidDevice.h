@@ -16,6 +16,8 @@ public:
     AndroidDevice( QObject *parent, ArduinoDevice *arduinoDevice );
     ~AndroidDevice();
 
+    bool shouldContinue;
+
 public slots:
     /* TemperatureSensor : Controller */
     void updateIcePresent( bool ice );    // gotIcePresent()
@@ -61,6 +63,7 @@ private:
 
     QMutex timeHeadwayMutex;
     float timeHeadway;
+
 };
 
 #endif

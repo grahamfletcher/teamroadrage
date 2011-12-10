@@ -13,6 +13,8 @@ public:
     RainSensor( QObject *parent, ArduinoDevice *arduinoDevice );
     ~RainSensor();
 
+    bool shouldContinue;
+
 signals:
     void gotReading( float voltage );
     void gotRainPresent( bool rain );

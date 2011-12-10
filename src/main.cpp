@@ -1,12 +1,15 @@
 #include <signal.h>
 #include <QApplication>
+#include <QDebug>
 #include <QObject>
 #include <QSettings>
 
 #include "Controller.h"
-#include "GUIController.h"
 
-Q_DECLARE_METATYPE( _Mat )
+#include "globals.h"
+
+//Q_DECLARE_METATYPE( _Mat )
+//Q_DECLARE_METATYPE( _QReadWriteLock );
 
 QSettings *settings;
 
@@ -34,9 +37,9 @@ int main( int argc, char **argv ) {
     signal( SIGQUIT, &app.exit );
 
     qRegisterMetaType<_Mat>( "_Mat" );
+    qRegisterMetaType<_QReadWriteLock>( "_QReadWriteLock" );
 
-    GUIController guiController( &app );
-    Controller controller( &app, &guiController );
+    Controller controller( &app );
 
     app.exec();
 }

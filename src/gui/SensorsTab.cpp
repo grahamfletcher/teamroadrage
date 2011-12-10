@@ -1,3 +1,4 @@
+#include <QDebug>
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
@@ -45,7 +46,7 @@ SensorsTab::SensorsTab( QWidget *parent = 0 ) : QWidget( parent ) {
 }
 
 SensorsTab::~SensorsTab() {
-
+    qDebug() << "~SensorsTab()";
 }
 void SensorsTab::setRawDistance( float distance ) {
     QString s;

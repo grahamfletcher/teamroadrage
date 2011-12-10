@@ -14,7 +14,7 @@ ReactionTimeTracker::ReactionTimeTracker( QObject *parent ) : QObject( parent ),
 }
 
 ReactionTimeTracker::~ReactionTimeTracker() {
-
+    qDebug() << "~ReactionTimeTracker()";
 }
 
 void ReactionTimeTracker::updateTimeHeadway( float time ) {

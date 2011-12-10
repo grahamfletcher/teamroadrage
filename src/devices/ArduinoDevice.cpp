@@ -24,7 +24,9 @@ ArduinoDevice::ArduinoDevice( QObject *parent ) : QObject( parent ) {
 }
 
 ArduinoDevice::~ArduinoDevice() {
-    close( fd );
+    QMutexLocker locker( &serialMutex );
+//    close( fd );
+    qDebug() << "~ArduinoDevice()";
 }
 
 void ArduinoDevice::setupSerial() {

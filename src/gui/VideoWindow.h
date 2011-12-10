@@ -19,7 +19,7 @@ signals:
     void gotVideoSelection( int type );
 
 public slots:
-    void updateVideoFrame( _Mat frame, int type );
+    void updateVideoFrame( _Mat frame, int type, _QReadWriteLock lock );
 
 private slots:
     void comboBoxChanged( int index );

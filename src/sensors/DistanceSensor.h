@@ -13,6 +13,8 @@ public:
     DistanceSensor( QObject *parent );
     ~DistanceSensor();
 
+    bool shouldContinue;
+
 signals:
     void gotReading( float distance );
 

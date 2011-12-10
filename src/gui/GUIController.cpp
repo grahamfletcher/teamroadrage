@@ -11,7 +11,7 @@ GUIController::GUIController( QObject *parent ) : QObject( parent ) {
 }
 
 GUIController::~GUIController() {
-
+    qDebug() << "~GUIController()";
 }
 
 void GUIController::updateSafeTimeHeadway( float time ) {
@@ -70,6 +70,6 @@ void GUIController::updateReactionTime( float time ) {
     inspectorWindow->setReactionTime( time );
 }
 
-void GUIController::updateCurrentFrame( cv::Mat *frame, int type ) {
-    videoWindow->updateVideoFrame( frame, type );
+void GUIController::updateCurrentFrame( cv::Mat *frame, int type, QReadWriteLock *lock ) {
+    videoWindow->updateVideoFrame( frame, type, lock );
 }

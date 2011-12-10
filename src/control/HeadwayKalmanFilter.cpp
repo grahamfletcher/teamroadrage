@@ -46,7 +46,7 @@ HeadwayKalmanFilter::HeadwayKalmanFilter( QObject *parent = 0 ) : QObject( paren
 }
 
 HeadwayKalmanFilter::~HeadwayKalmanFilter() {
-
+    qDebug() << "~HeadwayKalmanFilter()";
 }
 
 void HeadwayKalmanFilter::updateLeadVehiclePresent( bool vehiclePresent, bool vehicleAligned ) {

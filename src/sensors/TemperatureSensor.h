@@ -13,6 +13,8 @@ public:
     TemperatureSensor( QObject *parent, ArduinoDevice *arduinoDevice );
     ~TemperatureSensor();
 
+    bool shouldContinue;
+
 signals:
     void gotReading( float temperature );
     void gotIcePresent( bool ice );

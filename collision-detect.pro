@@ -19,6 +19,7 @@ HEADERS  = src/globals.h \
            src/control/ReactionTimeTracker.h \
            src/devices/AndroidDevice.h \
            src/devices/ArduinoDevice.h \
+           src/devices/CameraDevice.h \
            src/devices/OBDDevice.h \
            src/gui/GUIController.h \
            src/gui/HeadwayTab.h \
@@ -31,7 +32,7 @@ HEADERS  = src/globals.h \
            src/sensors/SpeedSensor.h \
            src/sensors/TemperatureSensor.h \
            src/util/MatToQImage.h \
-           src/vision/Capture.h \
+#           src/vision/Capture.h \
            src/vision/LaneDetector.h \
            src/vision/VehicleDetector.h
 SOURCES += src/main.cpp \
@@ -40,6 +41,7 @@ SOURCES += src/main.cpp \
            src/control/ReactionTimeTracker.cpp \
            src/devices/AndroidDevice.cpp \
            src/devices/ArduinoDevice.cpp \
+           src/devices/CameraDevice.cpp \
            src/devices/OBDDevice.cpp \
            src/gui/GUIController.cpp \
            src/gui/HeadwayTab.cpp \
@@ -52,7 +54,7 @@ SOURCES += src/main.cpp \
            src/sensors/SpeedSensor.cpp \
            src/sensors/TemperatureSensor.cpp \
            src/util/MatToQImage.cpp \
-           src/vision/Capture.cpp \
+#           src/vision/Capture.cpp \
            src/vision/LaneDetector.cpp \
            src/vision/VehicleDetector.cpp
 

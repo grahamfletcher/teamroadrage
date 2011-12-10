@@ -1,3 +1,4 @@
+#include <QDebug>
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
@@ -43,7 +44,7 @@ HeadwayTab::HeadwayTab( QWidget *parent = 0 ) : QWidget( parent ) {
 }
 
 HeadwayTab::~HeadwayTab() {
-
+    qDebug() << "~HeadwayTab()";
 }
 
 void HeadwayTab::setSafeTimeHeadway( float time ) {

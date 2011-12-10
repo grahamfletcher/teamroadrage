@@ -7,5 +7,5 @@ VehicleDetector::VehicleDetector( QObject *parent ) : QObject( parent ) {
 }
 
 VehicleDetector::~VehicleDetector() {
-
+    qDebug() << "~VehicleDetector()";
 }

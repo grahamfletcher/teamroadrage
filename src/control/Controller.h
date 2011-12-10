@@ -9,7 +9,7 @@
 
 #include "AndroidDevice.h"
 #include "ArduinoDevice.h"
-#include "Capture.h"
+#include "CameraDevice.h"
 #include "DistanceSensor.h"
 #include "GUIController.h"
 #include "HeadwayKalmanFilter.h"
@@ -26,7 +26,7 @@ class Controller : public QObject {
     Q_OBJECT
 
 public:
-    Controller( QObject *parent, GUIController *guiController );
+    Controller( QObject *parent );
     ~Controller();
 
 signals:
@@ -51,6 +51,7 @@ private:
 
     ArduinoDevice       *arduinoDevice;
     AndroidDevice       *androidDevice;
+    CameraDevice        *cameraDevice;
     OBDDevice           *obdDevice;
     
     DistanceSensor      *distanceSensor;
@@ -62,7 +63,6 @@ private:
     HeadwayKalmanFilter *headwayKalmanFilter;
     ReactionTimeTracker *reactionTimeTracker;
 
-    Capture             *capture;
     LaneDetector        *laneDetector;
     VehicleDetector     *vehicleDetector;
     

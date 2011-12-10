@@ -9,18 +9,19 @@
 #define ALARM_INTERVAL 5000    // in ms
 
 AndroidDevice::AndroidDevice( QObject *parent, ArduinoDevice *arduinoDevice ) : QThread( parent ), arduinoDevice( arduinoDevice ) {
+    shouldContinue = true;
+
     /* Start the alarm timer */
     timeElapsedSinceAlarm.start();
 
     /* Set correct affinity */
     moveToThread( this );
-
-    /* Start the thread */
-    start();
 }
 
 AndroidDevice::~AndroidDevice() {
-
+    qDebug() << "~AndroidDevice()";
+    shouldContinue = false;
+    wait();
 }
 
 void AndroidDevice::updateIcePresent( bool ice ) {
@@ -76,7 +77,7 @@ void AndroidDevice::sendDataToAndroid() {
     char buf[7];
     buf[0] = 'c';    // let Arduino know the command is destined for Android
 
-    while( 1 ) {
+    while( shouldContinue ) {
         usleep( 100000 );    // wait 100 ms
 
         /* Set ice presence */
@@ -114,9 +115,11 @@ void AndroidDevice::sendDataToAndroid() {
         leadVehicleVelocityMutex.lock();
         buf[6] = (char) leadVehicleVelocity;
         leadVehicleVelocityMutex.unlock();
+
+        arduinoDevice->getReading( buf, sizeof( buf ), NULL, 0 );
     }
 
-    arduinoDevice->getReading( buf, sizeof( buf ), NULL, 0 );
+    exit( 0 );
 }
 
 void AndroidDevice::run() {
@@ -125,3 +128,4 @@ void AndroidDevice::run() {
     /* Start the event loop */
     exec();
 }
+

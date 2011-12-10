@@ -13,6 +13,8 @@ public:
     SpeedSensor( QObject *parent, OBDDevice *obdDevice );
     ~SpeedSensor();
 
+    bool shouldContinue;
+
 signals:
     void gotReading( float speed );
 

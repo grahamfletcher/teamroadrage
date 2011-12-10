@@ -4,25 +4,29 @@
 #include "SpeedSensor.h"
 
 SpeedSensor::SpeedSensor( QObject *parent = 0, OBDDevice *obdDevice = 0 ) : QThread( parent ), obdDevice( obdDevice ) {
+    shouldContinue = true;
+
     /* Set correct affinity */
     moveToThread( this );
-
-    /* Start the thread */
-    start();
 }
 
 SpeedSensor::~SpeedSensor() {
-
+    qDebug() << "~SpeedSensor()";
+    shouldContinue = false;
+    wait();
 }
 
 void SpeedSensor::getSpeedFromOBD() {
     /* BEGIN TESTING CODE */
     float d = 10;
 
-    while ( 1 ) {
+    while ( shouldContinue ) {
         usleep( 70000 );
         emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
     }
+
+    exit( 0 );
+    return;
     /* END TESTING CODE */
 
     unsigned char cmd_010D1[] = { '0', '1', '0', 'D', '1', '\r' };
@@ -32,7 +36,7 @@ void SpeedSensor::getSpeedFromOBD() {
     int speed;
     char speedBuffer[] = { '0', '0', 0 };
 
-    while ( 1 ) {
+    while ( shouldContinue ) {
         if ( !obdDevice->getReading( cmd_010D1, sizeof( cmd_010D1 ), obdResult, sizeof( obdResult ) ) ) {
             /* Getting the reading failed; try again */
             continue;
@@ -51,6 +55,8 @@ void SpeedSensor::getSpeedFromOBD() {
                maybe got NO_DATA */
         }
     }
+
+    exit( 0 );
 }
 
 void SpeedSensor::run() {

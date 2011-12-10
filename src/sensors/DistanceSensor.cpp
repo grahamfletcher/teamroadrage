@@ -14,6 +14,8 @@
 
 
 DistanceSensor::DistanceSensor( QObject *parent = 0 ) : QThread( parent ) {
+    shouldContinue = true;
+
     intercept = settings->value( "DistanceSensor/intercept" ).toDouble();
     slope = settings->value( "DistanceSensor/slope" ).toDouble();
     slope = slope > 0 ? slope : 1;
@@ -29,15 +31,16 @@ DistanceSensor::DistanceSensor( QObject *parent = 0 ) : QThread( parent ) {
 
     /* Set correct affinity */
     moveToThread( this );
-
-    /* Start the thread */
-    start();
 }
 
 DistanceSensor::~DistanceSensor() {
     /* Release the FTDI context */
-    ftdi_usb_close( ftdi );
-    ftdi_free( ftdi );
+//    ftdi_usb_close( ftdi );
+//    ftdi_free( ftdi );
+
+    qDebug() << "~DistanceSensor()";
+    shouldContinue = false;
+    wait();
 }
 
 void DistanceSensor::setupFTDI() {
@@ -71,16 +74,18 @@ void DistanceSensor::monitorSerial() {
     /* BEGIN TESTING CODE */
     float d = 10;
 
-    while ( 1 ) {
+    while ( shouldContinue ) {
         usleep( 70000 );
         emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
     }
+
+    exit( 0 );
     /* END TESTING CODE */
 
 
     int offset = 0;
 
-    while( 1 ) {
+    while( shouldContinue ) {
         do {
             usleep( (100000 * 8 * BUF_SIZE) / BAUDRATE );
             offset = ftdi_read_data( ftdi, (unsigned char*) buf.data(), BUF_SIZE );
@@ -112,6 +117,8 @@ void DistanceSensor::monitorSerial() {
             /* Couldn't find a valid reading */
         }
     }
+
+    exit( 0 );
 }
 
 void DistanceSensor::run() {

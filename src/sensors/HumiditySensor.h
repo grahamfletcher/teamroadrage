@@ -13,6 +13,8 @@ public:
     HumiditySensor( QObject *parent, ArduinoDevice *arduinoDevice );
     ~HumiditySensor();
 
+    bool shouldContinue;
+
 signals:
     void gotReading( float humidity );
     void gotRainPresent( bool rain );

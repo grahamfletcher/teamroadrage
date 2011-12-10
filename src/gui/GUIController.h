@@ -47,7 +47,7 @@ public slots:
     void updateReactionTime( float time );    // gotReactionTime()
 
     /* Capture : Controller */
-    void updateCurrentFrame( _Mat frame, int type );
+    void updateCurrentFrame( _Mat frame, int type, _QReadWriteLock lock );
 
 private:
     InspectorWindow *inspectorWindow;
