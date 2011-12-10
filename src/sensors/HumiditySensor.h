@@ -15,7 +15,7 @@ public:
 
 signals:
     void gotReading( float humidity );
-    void gotRainPresent( float rain );
+    void gotRainPresent( bool rain );
 
 protected:
     void run();

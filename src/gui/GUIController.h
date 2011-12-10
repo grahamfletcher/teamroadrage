@@ -1,10 +1,10 @@
 #ifndef GUICONTROLLER_H
 #define GUICONTROLLER_H
 
-#include <opencv2/core/core.hpp>
 #include <QObject>
 #include <QSettings>
 
+#include "globals.h"
 #include "InspectorWindow.h"
 #include "VideoWindow.h"
 
@@ -47,7 +47,7 @@ public slots:
     void updateReactionTime( float time );    // gotReactionTime()
 
     /* Capture : Controller */
-    void updateCurrentFrame( cv::Mat &frame, int type );
+    void updateCurrentFrame( _Mat frame, int type );
 
 private:
     InspectorWindow *inspectorWindow;

@@ -15,6 +15,7 @@ public:
 
 signals:
     void gotFrame( cv::Mat &frame, int type );
+    void gotLeadVehiclePresent( bool present, bool aligned );
 
 };
 

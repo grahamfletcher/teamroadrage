@@ -51,25 +51,25 @@ void GUIController::updateTimeHeadway( float time ) {
 }
 
 void GUIController::updateDistanceHeadway( float distance ) {
-    qDebug() << "Distance headway: " << distance;
+    //qDebug() << "Distance headway: " << distance;
 }
 
 void GUIController::updateLeadVehicleVelocity( float velocity ) {
-    qDebug() << "Lead vehicle velocity: " << velocity;
+    //qDebug() << "Lead vehicle velocity: " << velocity;
 }
 
 void GUIController::updateFollowingVehicleVelocity( float velocity ) {
-    qDebug() << "Following vehicle velocity: " << velocity;
+    //qDebug() << "Following vehicle velocity: " << velocity;
 }
 
 void GUIController::updateFollowingVehicleAcceleration( float acceleration ) {
-    qDebug() << "Following vehicle acceleration: " << acceleration;
+    //qDebug() << "Following vehicle acceleration: " << acceleration;
 }
 
 void GUIController::updateReactionTime( float time ) {
     inspectorWindow->setReactionTime( time );
 }
 
-void GUIController::updateCurrentFrame( cv::Mat &frame, int type ) {
+void GUIController::updateCurrentFrame( cv::Mat *frame, int type ) {
     videoWindow->updateVideoFrame( frame, type );
 }

@@ -82,7 +82,7 @@ void Controller::connectSignalsAndSlots() {
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotLeadVehicleAcceleration( float ) ),
                       reactionTimeTracker,  SLOT( updateLeadVehicleAcceleration( float ) ) );
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotFollowingVehicleAcceleration( float ) ),
-                      reactionTimeTracker,  SLOT( updateFollowingVehicleVelocity( float ) ) );
+                      reactionTimeTracker,  SLOT( updateFollowingVehicleAcceleration( float ) ) );
 
     /* GUIController slots */
     QObject::connect( this,                 SIGNAL( gotSafeTimeHeadway( float ) ),
@@ -108,15 +108,15 @@ void Controller::connectSignalsAndSlots() {
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotDistanceHeadway( float ) ),
                       guiController,        SLOT( updateDistanceHeadway( float ) ) );
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotLeadVehicleVelocity( float ) ),
-                      guiController,        SLOT( updateLeadVehicleVelocity() ) );
+                      guiController,        SLOT( updateLeadVehicleVelocity( float ) ) );
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotFollowingVehicleVelocity( float ) ),
                       guiController,        SLOT( updateFollowingVehicleVelocity( float ) ) );
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotFollowingVehicleAcceleration( float ) ),
                       guiController,        SLOT( updateFollowingVehicleVelocity( float ) ) );
     QObject::connect( reactionTimeTracker,  SIGNAL( gotReactionTime( float ) ),
                       guiController,        SLOT( updateReactionTime( float ) ) );
-    QObject::connect( capture,              SIGNAL( gotNewFrame( cv::Mat&, int ) ),
-                      guiController,        SLOT( updateCurrentFrame( cv::Mat&, int ) ) );//, Qt::DirectConnection );
+    QObject::connect( capture,              SIGNAL( gotNewFrame( _Mat, int ) ),
+                      guiController,        SLOT( updateCurrentFrame( _Mat, int ) ) );
 
     /* Capture slots */
 

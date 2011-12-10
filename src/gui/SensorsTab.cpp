@@ -70,14 +70,14 @@ void SensorsTab::setHumidity( float humidity ) {
 
 void SensorsTab::setRainSensorVoltage( float voltage ) {
     QString s;
-    s.sprintf( "%.1f m/s", voltage );
+    s.sprintf( "%.1f V", voltage );
 
     rainSensorVoltageLabel->setText( s );
 }
 
 void SensorsTab::setTemperature( float temperature ) {
     QString s;
-    s.sprintf( "%.1f &deg;C", temperature );
+    s.sprintf( "%.1f %cC", temperature, 0x00B0 );
 
     temperatureLabel->setText( s );
 }

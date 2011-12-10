@@ -9,6 +9,8 @@
 #include <QThread>
 #include <QWaitCondition>
 
+#include "globals.h"
+
 class Capture : public QThread
 {
     Q_OBJECT
@@ -26,7 +28,7 @@ public:
     //QWaitCondition newFrameAvailable;
 
 signals:
-    void gotNewFrame( cv::Mat &mat, int type );
+    void gotNewFrame( _Mat mat, int type );
 
 protected:
     void run();

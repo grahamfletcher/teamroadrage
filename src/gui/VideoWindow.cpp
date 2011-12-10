@@ -3,7 +3,6 @@
 #include <QMutexLocker>
 #include <QVBoxLayout>
 
-#include "globals.h"
 #include "MatToQImage.h"
 #include "VideoWindow.h"
 
@@ -37,13 +36,11 @@ void VideoWindow::comboBoxChanged( int index ) {
     videoSelection = index;
 }
 
-void VideoWindow::updateVideoFrame( cv::Mat &frame, int type ) {
+void VideoWindow::updateVideoFrame( cv::Mat *frame, int type ) {
     QMutexLocker locker( &videoSelectionMutex );
 
-    qDebug() << "poo" << type;
-
     if ( type == videoSelection ) {
-        videoLabel->setPixmap( QPixmap::fromImage( MatToQImage( frame ) ) );
+        videoLabel->setPixmap( QPixmap::fromImage( MatToQImage( *frame ) ) );
     }
 }
 

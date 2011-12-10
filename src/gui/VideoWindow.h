@@ -1,10 +1,11 @@
 #ifndef VIDEOWINDOW_H
 #define VIDEOWINDOW_H
 
-#include <opencv2/core/core.hpp>
 #include <QDialog>
 #include <QLabel>
 #include <QMutex>
+
+#include "globals.h"
 
 class VideoWindow : public QDialog
 {
@@ -18,7 +19,7 @@ signals:
     void gotVideoSelection( int type );
 
 public slots:
-    void updateVideoFrame( cv::Mat &frame, int type );
+    void updateVideoFrame( _Mat frame, int type );
 
 private slots:
     void comboBoxChanged( int index );

@@ -33,11 +33,13 @@ Capture::Capture( QObject *parent ) : QThread( parent ) {
 
     captureFPS = 15;
 
+    //moveToThread( this );
+
     start();
 }
 
 Capture::~Capture() {
-
+    capture.release();
 }
 
 void Capture::getCurrentFrame( cv::Mat &destination ) {
@@ -70,7 +72,7 @@ bool Capture::getNextFrame() {
         returnValue = false;
     } else {
         currentFrame = currentFrame( captureCrop );
-        emit gotNewFrame( currentFrame, ORIGINAL );
+        emit gotNewFrame( &currentFrame, ORIGINAL );
     }
     currentFrameMutex.unlock();
 
