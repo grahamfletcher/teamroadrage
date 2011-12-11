@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/TempLightContainer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingLeft="5dip"
+    android:paddingTop="30dip"
+    android:weightSum="1" >
+
+	<LinearLayout
+	    android:id="@+id/TempContainer"
+	    android:layout_width="306dp"
+	    android:layout_height="237dp"
+	    android:descendantFocusability="afterDescendants"
+	    android:orientation="vertical" >
+
+		<TextView
+		    android:id="@+id/tempValueLabel"
+		    style="@style/TinyAccessoryControlLabel"
+		    android:layout_height="wrap_content"
+		    android:gravity="center"
+		    android:text="Headway"
+		    android:textSize="20px" >
+</TextView>
+
+	        <TextView
+	            android:id="@+id/tempValue"
+	            style="@style/TinyAccessoryMeasurement"
+	            android:layout_width="match_parent"
+	            android:layout_height="204dp"
+	            android:gravity="center"
+	            android:text="--"
+	            android:textSize="300px" >
+
+</TextView>
+
+	        <ProgressBar
+	            android:id="@+id/progressBar1"
+	            style="?android:attr/progressBarStyleHorizontal"
+	            android:layout_width="match_parent"
+	            android:layout_height="15dip"
+	            android:progressDrawable="@drawable/my_progress" >
+</ProgressBar>
+    </LinearLayout>
+	<ImageView android:id="@+id/imageView1" android:src="@drawable/rain_icon" android:layout_gravity="bottom" android:layout_width="wrap_content" android:adjustViewBounds="true" android:layout_height="89dp"></ImageView>
+    
+	<LinearLayout
+	    android:id="@+id/LightContainer"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical" >
+
+	    <TextView
+	        android:id="@+id/lightPercentLabel"
+	        style="@style/TinyAccessoryControlLabel"
+	        android:layout_width="170dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:gravity="center|left"
+	        android:text="Lead Vehicle Velocity"
+	        android:textSize="20px" >
+
+	    </TextView>
+
+	    <LinearLayout
+	        android:id="@+id/lightPercentValueContainer"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:orientation="horizontal" >
+
+	        <TextView
+	            android:id="@+id/lightPercentValue"
+	            style="@style/TinyAccessoryMeasurement"
+	            android:layout_height="wrap_content"
+	            android:text="--" >
+	        </TextView>
+
+	        <TextView
+	            android:id="@+id/lightPercentSuffix"
+	            style="@style/TinyAccessoryMeasurementSuffix"
+	            android:layout_height="wrap_content"
+	            android:gravity="top"
+	            android:text=" MPH" >
+	        </TextView>
+	    </LinearLayout>
+
+	    <LinearLayout
+	        android:id="@+id/lightRawValueContainer"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:orientation="horizontal" >
+	    </LinearLayout>
+	</LinearLayout>
+
+</LinearLayout>
+

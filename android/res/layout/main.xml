@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent" android:layout_height="match_parent"
+	android:orientation="vertical" android:background="@drawable/background_holo_dark">
+	<FrameLayout android:layout_width="match_parent"
+		android:layout_height="wrap_content" android:orientation="vertical"
+		android:paddingLeft="10dip" android:paddingRight="10dip">
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="match_parent" android:layout_height="match_parent"
+			android:orientation="vertical" >
+
+			<include
+			    android:id="@+id/TempLightContainer_ref"
+			    android:layout_width="match_parent"
+			    android:layout_height="286dp"
+			    layout="@layout/templightcontainer" />
+
+		</LinearLayout>
+	</FrameLayout>
+	<include layout="@layout/pwmout" android:layout_width="match_parent" android:id="@+id/pwmout1" android:layout_gravity="left" android:layout_height="2dp"></include>
+</LinearLayout>

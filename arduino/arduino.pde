@@ -20,8 +20,6 @@ AndroidAccessory acc( "Google, Inc.",
 void setup();
 void loop();
 
-int poo = 50;
-
 void setup()
 {
   Serial.begin(115200);
@@ -83,22 +81,35 @@ void loop()
       case 'c': //Output from PC
           // Read the next 6 bytes from the input buffer into a byte array
           // Then send byte array out with acc.write(array, 5);
-          // Assumes PC is sending data coded as bytes, which can be decoded
+          // Assumes PC is sending data coded as bytes, which can be decoded 
           // By the phone.
           
           delay(5);
           
-          char msg[7];
+          unsigned char msg[7];
            
           msg[0] = 0xFF;
 
-          for ( int i = 1; i < sizeof( msg ); i++ ) {
-            msg[i] = Serial.read();
+          for( int i = 1; (Serial.available() > 0) && (i < sizeof(msg)); i++ ) {
+            msg[i] = (unsigned char) Serial.read();
+            
+            delay( 1 );
           }
+
+          /*
+          msg[1] = 1;
+          msg[2] = 0;
+          msg[3] = 1;
+          msg[4] = 70;
+          msg[5] = 240;
+          msg[6] = 200;    // 89.48 mph
+           */
 
           acc.write( msg, sizeof( msg ) );
           
-          Serial.print( (char) 1 );
+          //Serial.print( "poo" );
+          
+          Serial.print( "" );
           
           break;
           
