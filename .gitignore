@@ -1,0 +1,6 @@
+.DS_Store
+*.[oa]
+moc/*
+bin/*
+obj/*
+*.swp
