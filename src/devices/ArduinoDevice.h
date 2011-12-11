@@ -8,7 +8,7 @@ class ArduinoDevice : public QObject {
 public:
     ArduinoDevice( QObject* parent );
     ~ArduinoDevice();
-    bool getReading( const char *command, int commandLength, char *result, int resultLength );
+    bool getReading( const unsigned char *command, int commandLength, unsigned char *result, int resultLength );
 
 private:
     void setupSerial();

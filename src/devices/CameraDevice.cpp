@@ -34,14 +34,9 @@ CameraDevice::~CameraDevice() {
 void CameraDevice::getFrame( cv::Mat &destination ) {
     QMutexLocker locker( &captureMutex );
 
-    qDebug() << "CameraDevice::getFrame()";
-
     while ( !capture->read( destination ) ) {
-        qDebug() << "waiting....";
         usleep( 10000 );    // wait 10 milliseconds
     }
-
-    qDebug() << "got the stinkin frame";
 
     destination = destination( crop );
 }

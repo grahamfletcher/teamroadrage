@@ -4,6 +4,7 @@
 #include "RainSensor.h"
 
 #define RAIN_THRESHOLD 1.2    // TODO: What is this?
+#define RAIN_FACTOR 10
 
 RainSensor::RainSensor( QObject *parent = 0, ArduinoDevice *arduinoDevice = 0 ) : QThread( parent ), arduinoDevice( arduinoDevice ) {
     shouldContinue = true;
@@ -19,20 +20,8 @@ RainSensor::~RainSensor() {
 }
 
 void RainSensor::getRainFromArduino() {
-    /* BEGIN TESTING CODE */
-    float d = 0;
-
-    while ( shouldContinue ) {
-        usleep( 70000 );
-        emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
-    }
-
-    exit( 0 );
-    return;
-    /* END TESTING CODE */
-
-    char cmd[] = { 'r', '\r' };
-    char result[1];
+    unsigned char cmd[] = { 'r' };
+    unsigned char result[1];
 
     while ( shouldContinue ) {
         sleep( 3 );    // wait three seconds between queries
@@ -42,7 +31,9 @@ void RainSensor::getRainFromArduino() {
             continue;
         }
 
-        float reading = (float) result[0];
+        float reading = ((float) result[0] * RAIN_FACTOR) / 1000;    // mV
+
+        qDebug() << reading;
 
         emit gotReading( reading );
         emit gotRainPresent( (reading > RAIN_THRESHOLD) );
@@ -56,3 +47,15 @@ void RainSensor::run() {
 
     exec();
 }
+
+    /* BEGIN TESTING CODE */
+    //float d = 0;
+
+    //while ( shouldContinue ) {
+    //    usleep( 70000 );
+    //    emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
+    //}
+
+    //exit( 0 );
+    //return;
+    /* END TESTING CODE */

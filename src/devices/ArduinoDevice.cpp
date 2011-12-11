@@ -20,12 +20,12 @@
 #define DEVICE_PATH "/dev/serial/by-id/usb-Arduino__www.arduino.cc__Arduino_Mega_ADK_64934333235351C0F160-if00"
 
 ArduinoDevice::ArduinoDevice( QObject *parent ) : QObject( parent ) {
-//    setupSerial();
+    setupSerial();
 }
 
 ArduinoDevice::~ArduinoDevice() {
     QMutexLocker locker( &serialMutex );
-//    close( fd );
+    close( fd );
     qDebug() << "~ArduinoDevice()";
 }
 
@@ -70,22 +70,39 @@ void ArduinoDevice::setupSerial() {
     }
 }
 
-bool ArduinoDevice::getReading( const char *command, int commandLength, char *result, int resultLength ) {
+bool ArduinoDevice::getReading( const unsigned char *command, int commandLength, unsigned char *result, int resultLength ) {
     QMutexLocker locker( &serialMutex );
 
-    if ( write( fd, command, commandLength ) != commandLength ) {
-        return false;
+    tcflush( fd, TCIFLUSH );
+
+    if ( commandLength > 0 && command != NULL ) {
+        if ( write( fd, command, commandLength ) != commandLength ) {
+            return false;
+        }
     }
 
     /* Some commands want a response; take care of these */
     if ( resultLength > 0 && result != NULL ) {
         int offset = 0;
+        int temp = 0;
+        int tries = 0;
 
         do {
             usleep( 10000 );    // wait 10 msec
-            offset += read( fd, (result + offset), (resultLength - offset) );
+            
+            temp = read( fd, (result + offset), (resultLength - offset) );
+            
+            offset += temp == -1 ? 0 : temp;
+
+            tries++;
+            
+            if ( tries > 5 ) {
+                return false;
+            }
         } while ( offset < resultLength );
     }
+
+    tcflush( fd, TCIOFLUSH );
 
     return true;
 }

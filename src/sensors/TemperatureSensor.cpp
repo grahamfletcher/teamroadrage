@@ -4,6 +4,7 @@
 #include "TemperatureSensor.h"
 
 #define ICE_THRESHOLD 40    // TODO: Is the temperature in degrees Celcius?
+#define ICE_OFFSET 40
 
 TemperatureSensor::TemperatureSensor( QObject *parent = 0, ArduinoDevice *arduinoDevice = 0 ) : QThread( parent ), arduinoDevice( arduinoDevice ) {
     shouldContinue = true;
@@ -31,18 +32,19 @@ void TemperatureSensor::getTemperatureFromArduino() {
     return;
     /* END TESTING CODE */
 
-    char cmd[] = { 't', '\r' };
-    char result[1];
+
+    unsigned char cmd[] = { 't', '\r' };
+    unsigned char result[1];
 
     while ( shouldContinue ) {
-        sleep( 30 );    // the temperature shouldn't change too quickly
+        sleep( 3 );//0 );    // the temperature shouldn't change too quickly
 
         if ( !arduinoDevice->getReading( cmd, sizeof( cmd ), result, sizeof( result ) ) ) {
             /* Getting the reading failed; try again */
             continue;
         }
 
-        emit gotReading( (float) result[0] );
+        emit gotReading( (float) result[0] - ICE_OFFSET );
 
         if ( (float) result[0] < ICE_THRESHOLD ) {
             emit gotIcePresent( true );
@@ -57,3 +59,4 @@ void TemperatureSensor::run() {
 
     exec();
 }
+

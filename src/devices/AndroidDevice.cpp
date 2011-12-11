@@ -74,7 +74,7 @@ void AndroidDevice::sendDataToAndroid() {
      * buf[5] = (float); time headway * 10
      * buf[6] = (int); lead vehicle velocity
      */
-    char buf[7];
+    unsigned char buf[7];
     buf[0] = 'c';    // let Arduino know the command is destined for Android
 
     while( shouldContinue ) {
@@ -82,12 +82,12 @@ void AndroidDevice::sendDataToAndroid() {
 
         /* Set ice presence */
         icePresentMutex.lock();
-        buf[1] = icePresent ? 1 : 0;
+        buf[1] = (char) icePresent ? 1 : 0;
         icePresentMutex.unlock();
         
         /* Set rain presence */
         rainPresentMutex.lock();
-        buf[2] = rainPresent ? 1 : 0;
+        buf[2] = (char) rainPresent ? 1 : 0;
         rainPresentMutex.unlock();
 
         /* Determine alarm condition */
@@ -95,10 +95,10 @@ void AndroidDevice::sendDataToAndroid() {
         timeHeadwayMutex.lock();
         if ( (timeHeadway < safeTimeHeadway) &&
              (timeElapsedSinceAlarm.elapsed() > ALARM_INTERVAL) ) {
-            buf[3] = 1;
+            buf[3] = (char) 1;
             timeElapsedSinceAlarm.restart();    // don't sound the alarm too often
         } else {
-            buf[3] = 0;
+            buf[3] = (char) 0;
         }
         safeTimeHeadwayMutex.unlock();
 
@@ -116,14 +116,16 @@ void AndroidDevice::sendDataToAndroid() {
         buf[6] = (char) leadVehicleVelocity;
         leadVehicleVelocityMutex.unlock();
 
-        arduinoDevice->getReading( buf, sizeof( buf ), NULL, 0 );
+        unsigned char result;
+
+        arduinoDevice->getReading( buf, sizeof( buf ), &result, 1 );
     }
 
     exit( 0 );
 }
 
 void AndroidDevice::run() {
-    QTimer::singleShot( 0, this, SLOT( sendDataToAndroid() ) );
+    //QTimer::singleShot( 0, this, SLOT( sendDataToAndroid() ) );
 
     /* Start the event loop */
     exec();

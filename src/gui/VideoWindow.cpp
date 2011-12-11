@@ -43,8 +43,6 @@ void VideoWindow::comboBoxChanged( int index ) {
 void VideoWindow::updateVideoFrame( cv::Mat *frame, int type, QReadWriteLock *lock ) {
     QMutexLocker locker( &videoSelectionMutex );
 
-    qDebug() << "VideoWindow::updateVideoFrame()" << type;
-
     if ( type == videoSelection ) {
         QReadLocker locker( lock );
 
