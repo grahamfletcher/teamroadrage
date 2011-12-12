@@ -30,7 +30,7 @@ DistanceSensor::DistanceSensor( QObject *parent = 0 ) : QThread( parent ) {
 
 
     /* Set correct affinity */
-    moveToThread( this );
+    //moveToThread( this );
 }
 
 DistanceSensor::~DistanceSensor() {
@@ -72,14 +72,16 @@ void DistanceSensor::setupFTDI() {
 
 void DistanceSensor::monitorSerial() {
     /* BEGIN TESTING CODE */
-    float d = 10;
+    float d = 15;
 
     while ( shouldContinue ) {
-        usleep( 70000 );
-        emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
+        usleep( 700000 );
+        emit gotReading( (d -= 0.1) + (qrand() % 9) / 10 );
+        qDebug() << "distance";
     }
 
     exit( 0 );
+    return;
     /* END TESTING CODE */
 
 

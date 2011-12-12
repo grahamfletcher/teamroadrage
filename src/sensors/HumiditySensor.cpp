@@ -7,7 +7,7 @@ HumiditySensor::HumiditySensor( QObject *parent = 0, ArduinoDevice *arduinoDevic
     shouldContinue = true;
 
     /* Set correct affinity */
-    moveToThread( this );
+    //moveToThread( this );
 }
 
 HumiditySensor::~HumiditySensor() {
@@ -29,8 +29,8 @@ void HumiditySensor::getHumidityFromArduino() {
     return;
     /* END TESTING CODE */
 
-    char cmd[] = { 'h', '\r' };
-    char result[1];
+    unsigned char cmd[] = { 'h', '\r' };
+    unsigned char result[1];
 
     while ( shouldContinue ) {
         sleep( 30 );    // the humidity shouldn't change too quickly

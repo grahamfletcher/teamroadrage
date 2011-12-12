@@ -43,8 +43,10 @@ void ArduinoDevice::setupSerial() {
         return;
     }
 
-    cfsetispeed( &termOptions, B9600 );
-    cfsetospeed( &termOptions, B9600 );
+    //cfsetispeed( &termOptions, B57600 );
+    //cfsetospeed( &termOptions, B57600 );
+    cfsetispeed( &termOptions, B115200 );
+    cfsetospeed( &termOptions, B115200 );
     
     // 8N1
     termOptions.c_cflag &= ~PARENB;
@@ -73,7 +75,7 @@ void ArduinoDevice::setupSerial() {
 bool ArduinoDevice::getReading( const unsigned char *command, int commandLength, unsigned char *result, int resultLength ) {
     QMutexLocker locker( &serialMutex );
 
-    tcflush( fd, TCIFLUSH );
+    //tcflush( fd, TCIOFLUSH );
 
     if ( commandLength > 0 && command != NULL ) {
         if ( write( fd, command, commandLength ) != commandLength ) {
@@ -88,16 +90,19 @@ bool ArduinoDevice::getReading( const unsigned char *command, int commandLength,
         int tries = 0;
 
         do {
-            usleep( 10000 );    // wait 10 msec
-            
             temp = read( fd, (result + offset), (resultLength - offset) );
-            
-            offset += temp == -1 ? 0 : temp;
 
-            tries++;
-            
-            if ( tries > 5 ) {
-                return false;
+            if ( temp != -1 ) {
+                offset += temp;
+            }
+           
+            if ( offset < resultLength ) {
+                usleep( 10000 );    // wait 10 msec
+
+                if ( tries++ >= 1000 ) {
+                    qDebug() << "Reading serial data failed for command \'" << (char) command[0] << "\'. ( read:" << offset << "; expected:" << resultLength << ")";
+                    return false;
+                }
             }
         } while ( offset < resultLength );
     }

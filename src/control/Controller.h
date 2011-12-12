@@ -48,6 +48,7 @@ private slots:
     void startThreads();
 
 private:
+    void moveThreads();
     void connectSignalsAndSlots();
 
     GUIController       *guiController;

@@ -10,7 +10,7 @@ TemperatureSensor::TemperatureSensor( QObject *parent = 0, ArduinoDevice *arduin
     shouldContinue = true;
 
     /* Set correct affinity */
-    moveToThread( this );
+    //moveToThread( this );
 }
 
 TemperatureSensor::~TemperatureSensor() {

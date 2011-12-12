@@ -7,7 +7,7 @@
 
 LaneDetector::LaneDetector( QObject *parent, CameraDevice *cameraDevice ) : QThread( parent ), cameraDevice( cameraDevice ) {
     shouldContinue = true;
-    moveToThread( this );
+    //moveToThread( this );
 }
 
 LaneDetector::~LaneDetector() {

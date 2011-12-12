@@ -5,10 +5,14 @@
 #include "CapSense.h"
 #include "SHT_15.h"
 
-#define  humidPowerPin  8
-#define  theDataPin     10
-#define  theClockPin    11
-#define  rainDataPin    A0
+#define HUMIDITY_POWER_PIN 8
+#define DATA_PIN           10
+#define CLOCK_PIN          11
+#define RAIN_DATA_PIN      A0
+#define BAUD_RATE          115200    // this was too fast earlier, but now it works...
+#define MESSAGE_SIZE       7
+
+bool accPoweredOn = false;
 
 AndroidAccessory acc( "Google, Inc.",
                       "DemoKit",
@@ -17,112 +21,114 @@ AndroidAccessory acc( "Google, Inc.",
                       "http://www.android.com",
                       "0000000012345678" );
 
-void setup();
-void loop();
+void setup() {
+    Serial.begin( BAUD_RATE );
+    Serial.print( "\r\nStart" );
 
-void setup()
-{
-  Serial.begin(115200);
-  Serial.print("\r\nStart");
+    pinMode( 24, INPUT );
+    pinMode( 25, INPUT );
 
-  pinMode(24,INPUT);
-  pinMode(25,INPUT);
+    pinMode( HUMIDITY_POWER_PIN, OUTPUT );
+    digitalWrite( HUMIDITY_POWER_PIN, HIGH );
 
-  pinMode(humidPowerPin, OUTPUT);
-  digitalWrite(humidPowerPin, HIGH);
-
-  acc.powerOn();
+    //acc.powerOn();    // this now has to be explicitly called once things are ready
 }
 
-void loop()
-{
-  byte err;
-  byte idle;
-  static byte count = 0;
-  byte msg[3];
-  long touchcount;
+void loop() {
+    float temperature;
+    float humidity;
+    float rainVoltage;
+    float val;
 
-  if (acc.isConnected()) {
-    char cmd = 0;
-    int val;
+    byte command = 0;    // command sent from computer
+    byte message[MESSAGE_SIZE];
 
-    while (Serial.available() > 0) {
-      cmd = Serial.read();
+    message[0] = 0xFF;    // lets the Android know where the buffer begins
 
-      switch (cmd) {
-      case 't':  //Read Temperature
-          float temp;
-
-          sendCommandSHT( gTempCmd, theDataPin, theClockPin );
-          waitForResultSHT( theDataPin);
-          val = getData16SHT( theDataPin, theClockPin );
-          skipCrcSHT( theDataPin, theClockPin );
-
-          temp = -40.0 + 0.018 * (float) val;
-
-          Serial.print( (char) (temp + 40) );    // offset of 40
-          
-          break;
-      
-      case 'h': //Read Humidity
-          float humid;
-
-          sendCommandSHT( gHumidCmd, theDataPin, theClockPin );
-          waitForResultSHT( theDataPin );
-          val = getData16SHT( theDataPin, theClockPin );
-          skipCrcSHT( theDataPin, theClockPin );
-
-          humid = -4.0 + 0.0405 * val + -0.0000028 * val * val;
-
-          Serial.print( (char) humid );    // what is the range of humidity?
-          
-          break; 
-          
-      case 'c': //Output from PC
-          // Read the next 6 bytes from the input buffer into a byte array
-          // Then send byte array out with acc.write(array, 5);
-          // Assumes PC is sending data coded as bytes, which can be decoded 
-          // By the phone.
-          
-          delay(5);
-          
-          unsigned char msg[7];
-           
-          msg[0] = 0xFF;
-
-          for( int i = 1; (Serial.available() > 0) && (i < sizeof(msg)); i++ ) {
-            msg[i] = (unsigned char) Serial.read();
-            
-            delay( 1 );
-          }
-
-          /*
-          msg[1] = 1;
-          msg[2] = 0;
-          msg[3] = 1;
-          msg[4] = 70;
-          msg[5] = 240;
-          msg[6] = 200;    // 89.48 mph
-           */
-
-          acc.write( msg, sizeof( msg ) );
-          
-          //Serial.print( "poo" );
-          
-          Serial.print( "" );
-          
-          break;
-          
-      case 'r':
-          Serial.print( (char) (analogRead( rainDataPin ) / 10) );    // factor of 10
-
-          break;
-          
-      default:
-          Serial.print( (char) 0 );
-      }
+    bool androidAvailable = false;
+    
+    if ( accPoweredOn ) {
+        androidAvailable = acc.isConnected();
     }
-  }
+
+    while ( Serial.available() > 0 ) {
+
+        command = Serial.read();
+
+        switch ( command ) {
+
+            case 'z':    // start the Android and return its status
+
+                if ( !accPoweredOn ) {
+                    acc.powerOn();
+                    accPoweredOn = true;
+                }
+
+                Serial.print( (char) acc.isConnected() );
+
+                break;
+
+            case 't':    // read temperature
+
+                sendCommandSHT( gTempCmd, DATA_PIN, CLOCK_PIN );
+                waitForResultSHT( DATA_PIN );
+                val = getData16SHT( DATA_PIN, CLOCK_PIN );
+                skipCrcSHT( DATA_PIN, CLOCK_PIN );
+
+                temperature = -40.0 + 0.018 * val;
+
+                Serial.print( (char) (temperature + 40) );    // offset by 40 to make unsigned
+
+                break;
+
+            case 'h':    // read humidity
+
+                sendCommandSHT( gHumidCmd, DATA_PIN, CLOCK_PIN );
+                waitForResultSHT( DATA_PIN );
+                val = getData16SHT( DATA_PIN, CLOCK_PIN );
+                skipCrcSHT( DATA_PIN, CLOCK_PIN );
+
+                humidity = -4.0 + 0.0405 * val + -0.0000028 * val * val;
+
+                Serial.print( (char) humidity );    // what is the range of humidity?
+
+                break;
+
+            case 'r':
+
+                rainVoltage = analogRead( RAIN_DATA_PIN );
+
+                Serial.print( (char) (0.5 + rainVoltage / 10) );
+
+                break;
+        
+            case 'c':    // send data from PC to Android
+
+                for ( int i = 1; i < sizeof( message ); i++ ) {
+                    while( !Serial.available() ) {
+                        delay( 1 );
+                    }
+
+                    message[i] = Serial.read();
+                }
+
+                if ( androidAvailable ) {
+                    acc.write( message, sizeof( message ) );
+        
+                    /* Signal that the message has been sent */
+                    Serial.print( (char) 1 );
+                } else {
+                    /* Signal that we failed */
+                    Serial.print( (char) 0 );
+                }
+
+                break;
+
+            default:
+                /* I'd rather just do nothing in response */
+                break;
+        }
+    }
 }
 
 

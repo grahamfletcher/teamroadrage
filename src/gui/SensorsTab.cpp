@@ -71,7 +71,7 @@ void SensorsTab::setHumidity( float humidity ) {
 
 void SensorsTab::setRainSensorVoltage( float voltage ) {
     QString s;
-    s.sprintf( "%.1f V", voltage );
+    s.sprintf( "%.2f V", voltage );
 
     rainSensorVoltageLabel->setText( s );
 }

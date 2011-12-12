@@ -34,11 +34,13 @@ Controller::Controller( QObject *parent ) : QObject( parent ) {
     laneDetector        = new LaneDetector( NULL, cameraDevice );
     vehicleDetector     = new VehicleDetector( this );
 
+    /* Set correct thread affinities */
+    moveThreads();
 
     /* Connect a zillion signals and slots to make everything work */
     connectSignalsAndSlots();
-    
-    QTimer::singleShot( 10, this, SLOT( startThreads() ) );
+
+    QTimer::singleShot( 500, this, SLOT( startThreads() ) );
 }
 
 Controller::~Controller() {
@@ -51,12 +53,19 @@ Controller::~Controller() {
     laneDetector->shouldContinue =      false;
 
     androidDevice->wait();
+    qDebug() << "1";
     distanceSensor->wait();
+    qDebug() << "2";
     humiditySensor->wait();
+    qDebug() << "3";
     rainSensor->wait();
+    qDebug() << "4";
     speedSensor->wait();
+    qDebug() << "5";
     temperatureSensor->wait();
+    qDebug() << "6";
     laneDetector->wait();
+    qDebug() << "7";
 }
 
 void Controller::startThreads() {
@@ -69,82 +78,154 @@ void Controller::startThreads() {
     laneDetector->start();
 }
 
+void Controller::moveThreads() {
+    androidDevice->moveToThread( androidDevice );
+    distanceSensor->moveToThread( distanceSensor );
+    humiditySensor->moveToThread( humiditySensor );
+    rainSensor->moveToThread( rainSensor );
+    speedSensor->moveToThread( speedSensor );
+    temperatureSensor->moveToThread( temperatureSensor );
+    laneDetector->moveToThread( laneDetector );
+
+}
+
 void Controller::connectSignalsAndSlots() {
     /* Controller slots */
     QObject::connect( rainSensor,           SIGNAL( gotRainPresent( bool ) ),
-                      this,                 SLOT( updateRainPresent( bool ) ) );
+                      this,                 SLOT( updateRainPresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( humiditySensor,       SIGNAL( gotRainPresent( bool ) ),
-                      this,                 SLOT( updateRainPresent( bool ) ) );
+                      this,                 SLOT( updateRainPresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( temperatureSensor,    SIGNAL( gotIcePresent( bool ) ),
-                      this,                 SLOT( updateIcePresent( bool ) ) );
+                      this,                 SLOT( updateIcePresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( reactionTimeTracker,  SIGNAL( gotReactionTime( float ) ),
-                      this,                 SLOT( updateReactionTime( float ) ) );
+                      this,                 SLOT( updateReactionTime( float ) ),
+                      Qt::DirectConnection );
 
     /* Android slots */
     QObject::connect( temperatureSensor,    SIGNAL( gotIcePresent( bool ) ),
-                      androidDevice,        SLOT( updateIcePresent( bool ) ) );
+                      androidDevice,        SLOT( updateIcePresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotLeadVehicleVelocity( float ) ),
-                      androidDevice,        SLOT( updateLeadVehicleVelocity( float ) ) );
+                      androidDevice,        SLOT( updateLeadVehicleVelocity( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotTimeHeadway( float ) ),
-                      androidDevice,        SLOT( updateTimeHeadway( float ) ) );
+                      androidDevice,        SLOT( updateTimeHeadway( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( rainSensor,           SIGNAL( gotRainPresent( bool ) ),
-                      androidDevice,        SLOT( updateRainPresent( bool ) ) );
+                      androidDevice,        SLOT( updateRainPresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( humiditySensor,       SIGNAL( gotRainPresent( bool ) ),
-                      androidDevice,        SLOT( updateRainPresent( bool ) ) );
+                      androidDevice,        SLOT( updateRainPresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( reactionTimeTracker,  SIGNAL( gotReactionTime( float ) ),
-                      androidDevice,        SLOT( updateReactionTime( float ) ) );
+                      androidDevice,        SLOT( updateReactionTime( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( this,                 SIGNAL( gotSafeTimeHeadway( float ) ),
-                      androidDevice,        SLOT( updateSafeTimeHeadway( float ) ) );
+                      androidDevice,        SLOT( updateSafeTimeHeadway( float ) ),
+                      Qt::DirectConnection );
 
     /* HeadwayKalmanFilter slots */
     QObject::connect( vehicleDetector,      SIGNAL( gotLeadVehiclePresent( bool, bool ) ),
-                      headwayKalmanFilter,  SLOT( updateLeadVehiclePresent( bool, bool ) ) );
+                      headwayKalmanFilter,  SLOT( updateLeadVehiclePresent( bool, bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( distanceSensor,       SIGNAL( gotReading( float ) ),
-                      headwayKalmanFilter,  SLOT( updateDistanceReading( float ) ) );
+                      headwayKalmanFilter,  SLOT( updateDistanceReading( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( speedSensor,          SIGNAL( gotReading( float ) ),
-                      headwayKalmanFilter,  SLOT( updateSpeedReading( float ) ) );
+                      headwayKalmanFilter,  SLOT( updateSpeedReading( float ) ),
+                      Qt::DirectConnection );;
 
     /* ReactionTimeTracker slots */
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotTimeHeadway( float ) ),
-                      reactionTimeTracker,  SLOT( updateTimeHeadway( float ) ) );
+                      reactionTimeTracker,  SLOT( updateTimeHeadway( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotLeadVehicleAcceleration( float ) ),
-                      reactionTimeTracker,  SLOT( updateLeadVehicleAcceleration( float ) ) );
+                      reactionTimeTracker,  SLOT( updateLeadVehicleAcceleration( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotFollowingVehicleAcceleration( float ) ),
-                      reactionTimeTracker,  SLOT( updateFollowingVehicleAcceleration( float ) ) );
+                      reactionTimeTracker,  SLOT( updateFollowingVehicleAcceleration( float ) ),
+                      Qt::DirectConnection );;
 
     /* GUIController slots */
     QObject::connect( this,                 SIGNAL( gotSafeTimeHeadway( float ) ),
-                      guiController,        SLOT( updateSafeTimeHeadway( float ) ) );
+                      guiController,        SLOT( updateSafeTimeHeadway( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( this,                 SIGNAL( gotIcePresent( bool ) ),
-                      guiController,        SLOT( updateIcePresent( bool ) ) );
+                      guiController,        SLOT( updateIcePresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( this,                 SIGNAL( gotRainPresent( bool ) ),
-                      guiController,        SLOT( updateRainPresent( bool ) ) );
+                      guiController,        SLOT( updateRainPresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( distanceSensor,       SIGNAL( gotReading( float ) ),
-                      guiController,        SLOT( updateRawDistance( float ) ) );
+                      guiController,        SLOT( updateRawDistance( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( humiditySensor,       SIGNAL( gotReading( float ) ),
-                      guiController,        SLOT( updateHumidity( float ) ) );
+                      guiController,        SLOT( updateHumidity( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( rainSensor,           SIGNAL( gotReading( float ) ),
-                      guiController,        SLOT( updateRainSensorVoltage( float ) ) );
+                      guiController,        SLOT( updateRainSensorVoltage( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( rainSensor,           SIGNAL( gotRainPresent( bool ) ),
-                      guiController,        SLOT( updateRainPresent( bool ) ) );
+                      guiController,        SLOT( updateRainPresent( bool ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( speedSensor,          SIGNAL( gotReading( float ) ),
-                      guiController,        SLOT( updateRawFollowingVehicleVelocity( float ) ) );
+                      guiController,        SLOT( updateRawFollowingVehicleVelocity( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( temperatureSensor,    SIGNAL( gotReading( float ) ),
-                      guiController,        SLOT( updateTemperature( float ) ), Qt::DirectConnection );
+                      guiController,        SLOT( updateTemperature( float ) ),
+                      Qt::DirectConnection );
+    
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotTimeHeadway( float ) ),
-                      guiController,        SLOT( updateTimeHeadway( float ) ) );
+                      guiController,        SLOT( updateTimeHeadway( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotDistanceHeadway( float ) ),
-                      guiController,        SLOT( updateDistanceHeadway( float ) ) );
+                      guiController,        SLOT( updateDistanceHeadway( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotLeadVehicleVelocity( float ) ),
-                      guiController,        SLOT( updateLeadVehicleVelocity( float ) ) );
+                      guiController,        SLOT( updateLeadVehicleVelocity( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotFollowingVehicleVelocity( float ) ),
-                      guiController,        SLOT( updateFollowingVehicleVelocity( float ) ) );
+                      guiController,        SLOT( updateFollowingVehicleVelocity( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotFollowingVehicleAcceleration( float ) ),
-                      guiController,        SLOT( updateFollowingVehicleVelocity( float ) ) );
+                      guiController,        SLOT( updateFollowingVehicleVelocity( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( reactionTimeTracker,  SIGNAL( gotReactionTime( float ) ),
-                      guiController,        SLOT( updateReactionTime( float ) ) );
+                      guiController,        SLOT( updateReactionTime( float ) ),
+                      Qt::DirectConnection );
+
     QObject::connect( laneDetector,         SIGNAL( gotFrame( _Mat, int, _QReadWriteLock ) ),
-                      guiController,        SLOT( updateCurrentFrame( _Mat, int, _QReadWriteLock ) ), Qt::QueuedConnection );
+                      guiController,        SLOT( updateCurrentFrame( _Mat, int, _QReadWriteLock ) ),
+                      Qt::QueuedConnection );
 
     /* Capture slots */
 

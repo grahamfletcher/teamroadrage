@@ -7,7 +7,7 @@ SpeedSensor::SpeedSensor( QObject *parent = 0, OBDDevice *obdDevice = 0 ) : QThr
     shouldContinue = true;
 
     /* Set correct affinity */
-    moveToThread( this );
+    //moveToThread( this );
 }
 
 SpeedSensor::~SpeedSensor() {

@@ -45,6 +45,7 @@ private:
     ArduinoDevice *arduinoDevice;
 
     QTime timeElapsedSinceAlarm;
+    QTime timeElapsedSinceUpdate;
 
     QMutex icePresentMutex;
     bool icePresent;

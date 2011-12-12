@@ -26,10 +26,10 @@ HeadwayKalmanFilter::HeadwayKalmanFilter( QObject *parent = 0 ) : QObject( paren
 
     /* Set the process noise covariance matrix, Q
        NOTE: These values are guesses */
-    kalmanFilter.processNoiseCov = *(cv::Mat_<float>( 4, 4 ) << 3, 0,   0,   0,
-                                                                0, 1,   0,   0,
-                                                                0, 0, 0.8,   0,
-                                                                0, 0,   0, 0.6);
+    kalmanFilter.processNoiseCov = *(cv::Mat_<float>( 4, 4 ) << 3, 0, 0, 0,
+                                                                0, 1, 0, 0,
+                                                                0, 0, 4, 0,
+                                                                0, 0, 0, 8);
 
     /* Create measurement transformation matrices, H, for distance and speed */
     distanceH = *(cv::Mat_<float>( 1, 4 ) << 1, 0, 0, 0);

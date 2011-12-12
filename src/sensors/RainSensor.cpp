@@ -3,14 +3,14 @@
 
 #include "RainSensor.h"
 
-#define RAIN_THRESHOLD 1.2    // TODO: What is this?
+#define RAIN_THRESHOLD 0.4    // 400 mV
 #define RAIN_FACTOR 10
 
 RainSensor::RainSensor( QObject *parent = 0, ArduinoDevice *arduinoDevice = 0 ) : QThread( parent ), arduinoDevice( arduinoDevice ) {
     shouldContinue = true;
 
     /* Set correct affinity */
-    moveToThread( this );
+    //moveToThread( this );
 }
 
 RainSensor::~RainSensor() {
@@ -23,6 +23,12 @@ void RainSensor::getRainFromArduino() {
     unsigned char cmd[] = { 'r' };
     unsigned char result[1];
 
+    /* Get one reading and ignore it; the first one is always wrong for some reason */
+    while ( !arduinoDevice->getReading( cmd, sizeof( cmd ), result, sizeof( result ) ) ) {
+        sleep( 1 );    // hold on one second
+    }
+
+    /* Get the real readings and loop until it's time to quit */
     while ( shouldContinue ) {
         sleep( 3 );    // wait three seconds between queries
 
@@ -32,8 +38,6 @@ void RainSensor::getRainFromArduino() {
         }
 
         float reading = ((float) result[0] * RAIN_FACTOR) / 1000;    // mV
-
-        qDebug() << reading;
 
         emit gotReading( reading );
         emit gotRainPresent( (reading > RAIN_THRESHOLD) );
@@ -49,13 +53,15 @@ void RainSensor::run() {
 }
 
     /* BEGIN TESTING CODE */
-    //float d = 0;
+    /*
+    float d = 0;
 
-    //while ( shouldContinue ) {
-    //    usleep( 70000 );
-    //    emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
-    //}
+    while ( shouldContinue ) {
+        usleep( 70000 );
+        emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
+    }
 
-    //exit( 0 );
-    //return;
+    exit( 0 );
+    return;
+    */
     /* END TESTING CODE */
