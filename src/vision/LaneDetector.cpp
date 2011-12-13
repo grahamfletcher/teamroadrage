@@ -7,7 +7,6 @@
 
 LaneDetector::LaneDetector( QObject *parent, CameraDevice *cameraDevice ) : QThread( parent ), cameraDevice( cameraDevice ) {
     shouldContinue = true;
-    //moveToThread( this );
 }
 
 LaneDetector::~LaneDetector() {
@@ -18,6 +17,7 @@ LaneDetector::~LaneDetector() {
 
 void LaneDetector::getFrameFromCamera() {
     if ( !shouldContinue ) {
+        qDebug() << "exit LaneDetector";
         exit( 0 );
         return;
     }
@@ -33,6 +33,7 @@ void LaneDetector::getFrameFromCamera() {
 
 void LaneDetector::convertToGrayscale() {
     if ( !shouldContinue ) {
+        qDebug() << "exit LaneDetector";
         exit( 0 );
         return;
     }

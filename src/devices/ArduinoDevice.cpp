@@ -43,10 +43,10 @@ void ArduinoDevice::setupSerial() {
         return;
     }
 
-    //cfsetispeed( &termOptions, B57600 );
-    //cfsetospeed( &termOptions, B57600 );
-    cfsetispeed( &termOptions, B115200 );
-    cfsetospeed( &termOptions, B115200 );
+    cfsetispeed( &termOptions, B57600 );
+    cfsetospeed( &termOptions, B57600 );
+    //cfsetispeed( &termOptions, B115200 );
+    //cfsetospeed( &termOptions, B115200 );
     
     // 8N1
     termOptions.c_cflag &= ~PARENB;
@@ -72,35 +72,40 @@ void ArduinoDevice::setupSerial() {
     }
 }
 
-bool ArduinoDevice::getReading( const unsigned char *command, int commandLength, unsigned char *result, int resultLength ) {
+bool ArduinoDevice::getReading( const unsigned char *command, size_t commandLength, unsigned char *result, size_t resultLength, unsigned int delay ) {
     QMutexLocker locker( &serialMutex );
+
+    int temp;
 
     //tcflush( fd, TCIOFLUSH );
 
     if ( commandLength > 0 && command != NULL ) {
-        if ( write( fd, command, commandLength ) != commandLength ) {
+        temp = write( fd, command, commandLength );
+        
+        if ( (unsigned) temp != commandLength ) {
             return false;
         }
     }
 
     /* Some commands want a response; take care of these */
     if ( resultLength > 0 && result != NULL ) {
-        int offset = 0;
-        int temp = 0;
-        int tries = 0;
+        unsigned int offset = 0;
+        unsigned int tries = 0;
+
+        usleep( delay );    // sometimes the Arduino takes a while to give back an answer
 
         do {
             temp = read( fd, (result + offset), (resultLength - offset) );
 
-            if ( temp != -1 ) {
+            if ( temp >= 0 ) {
                 offset += temp;
             }
            
             if ( offset < resultLength ) {
-                usleep( 10000 );    // wait 10 msec
+                usleep( 10000 );    // wait a while longer
 
-                if ( tries++ >= 1000 ) {
-                    qDebug() << "Reading serial data failed for command \'" << (char) command[0] << "\'. ( read:" << offset << "; expected:" << resultLength << ")";
+                if ( tries++ >= 10 ) {
+                    qDebug( "Reading serial data failed for command \'%c\'. Expected %d bytes, got %d bytes.", command[0], resultLength, offset );
                     return false;
                 }
             }

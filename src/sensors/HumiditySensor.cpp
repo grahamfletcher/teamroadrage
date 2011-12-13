@@ -5,9 +5,6 @@
 
 HumiditySensor::HumiditySensor( QObject *parent = 0, ArduinoDevice *arduinoDevice = 0 ) : QThread( parent ), arduinoDevice( arduinoDevice ) {
     shouldContinue = true;
-
-    /* Set correct affinity */
-    //moveToThread( this );
 }
 
 HumiditySensor::~HumiditySensor() {
@@ -33,20 +30,30 @@ void HumiditySensor::getHumidityFromArduino() {
     unsigned char result[1];
 
     while ( shouldContinue ) {
-        sleep( 30 );    // the humidity shouldn't change too quickly
-
         if ( !arduinoDevice->getReading( cmd, sizeof( cmd ), result, sizeof( result ) ) ) {
             /* Getting the reading failed; try again */
-            continue;
+            if ( shouldContinue ) {
+                continue;
+            }
         }
 
         emit gotReading( (float) result[0] );
 
-        if ( result[0] > 90 ) {
+        if ( result[0] > 90 && shouldContinue ) {
             emit gotRainPresent( true );
+        }
+
+        // wait 30 seconds
+        for ( int i = 0; i < 60; i++ ) {
+            usleep( 500000 );
+
+            if ( !shouldContinue ) {
+                break;
+            }
         }
     }
 
+    qDebug() << "exit HumiditySensor";
     exit( 0 );
 }
 

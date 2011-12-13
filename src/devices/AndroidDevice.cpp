@@ -15,17 +15,7 @@ AndroidDevice::AndroidDevice( QObject *parent, ArduinoDevice *arduinoDevice ) : 
     /* Start the alarm timer */
     timeElapsedSinceAlarm.start();
 
-    /* Set correct affinity */
-    //moveToThread( this );
-
-    /* Start the accessory mode */
-    unsigned char command = 'z';
-    unsigned char result = 0;
-    
-    do {
-        arduinoDevice->getReading( &command, sizeof( command ), &result, sizeof( result ) );
-    } while ( result != 1 );
-
+    /* Start the update timer */
     timeElapsedSinceUpdate.start();
 }
 
@@ -38,24 +28,17 @@ AndroidDevice::~AndroidDevice() {
 void AndroidDevice::updateIcePresent( bool ice ) {
     QMutexLocker locker( &icePresentMutex );
 
-    qDebug() << "updateIcePresent()" << ice;
-
     icePresent = ice;
 }
 
 void AndroidDevice::updateLeadVehicleVelocity( float velocity ) {
     QMutexLocker locker( &leadVehicleVelocityMutex );
 
-    qDebug() << "updateLeadVehicleVelocity()" << velocity;
-
-    /* Min: 0, Max: 254 */
-    leadVehicleVelocity = velocity < 0 ? 0 : (velocity > 254 ? 254 : velocity);
+    leadVehicleVelocity = qBound( (float) 0, velocity, (float) 254 );
 }
 
 void AndroidDevice::updateRainPresent( bool rain ) {
     QMutexLocker locker( &rainPresentMutex );
-
-    qDebug() << "updateRainPresent()" << rain;
 
     rainPresent = rain;
 }
@@ -63,28 +46,19 @@ void AndroidDevice::updateRainPresent( bool rain ) {
 void AndroidDevice::updateReactionTime( float time ) {
     QMutexLocker locker( &reactionTimeMutex );
 
-    qDebug() << "updateReactionTime()" << time;
-
-    /* Min: 0.1, Max: 25.4 */
-    reactionTime = time < 0 ? 0.1 : (time > 25.4 ? 25.4 : time);
+    reactionTime = qBound( (float) 0.1, time, (float) 25.4 );
 }
 
 void AndroidDevice::updateSafeTimeHeadway( float headway ) {
     QMutexLocker locker( &safeTimeHeadwayMutex );
 
-    qDebug() << "updateSafeTimeHeadway()" << headway;
-
-    /* Min: 0, Max: 25.4 */
-    safeTimeHeadway = headway < 0 ? 0 : (headway > 25.4 ? 25.4 : headway);
+    safeTimeHeadway = qBound( (float) 0, headway, (float) 25.4 );
 }
 
 void AndroidDevice::updateTimeHeadway( float headway ) {
     QMutexLocker locker( &timeHeadwayMutex );
 
-    qDebug() << "updateTimeHeadway()" << headway;
-
-    /* Min: 0, Max: 25.4 */
-    timeHeadway = headway < 0 ? 0 : (headway > 25.4 ? 25.4 : headway);
+    timeHeadway = qBound( (float) 0, headway, (float) 25.4 );
 }
 
 void AndroidDevice::sendDataToAndroid() {
@@ -97,66 +71,85 @@ void AndroidDevice::sendDataToAndroid() {
      * buf[5] = (float); time headway * 10
      * buf[6] = (int); lead vehicle velocity * 5
      */
-    unsigned char buf[7] = { 'c', '0', '0', '0', '0', '0', '0' };    // 'c' lets the Arduino know the command is destined for Android
+
+    /* Start the accessory mode */
+    unsigned char command = 'z';
+    unsigned char result = 0;
+    
+    do {
+        arduinoDevice->getReading( &command, sizeof( command ), &result, sizeof( result ), 2000000 );
+        //usleep( 100000 );
+    } while ( result != 1 && shouldContinue );
+
+
     unsigned char result = 0;
 
     int t;
 
     while( shouldContinue ) {
+        unsigned char buf[] = { 'c', 0, 0, 0, 0, 0, 0 };    // 'c' lets the Arduino know the command is destined for Android
+
         t = timeElapsedSinceUpdate.elapsed();
         
-        qDebug() << "t = " << t;
         if ( t < UPDATE_INTERVAL ) {
             usleep( 1000 * (UPDATE_INTERVAL - t) );    // don't update too quickly
         }
 
         /* Set ice presence */
         icePresentMutex.lock();
-        buf[1] = icePresent ? (char) 1 : (char) 0;
+        if ( icePresent ) {
+            buf[1]++;
+        }
         icePresentMutex.unlock();
         
         /* Set rain presence */
         rainPresentMutex.lock();
-        buf[2] = rainPresent ? (char) 1 : (char) 0;
+        if ( rainPresent ) {
+            buf[2]++;
+        }
         rainPresentMutex.unlock();
 
         /* Determine alarm condition */
         safeTimeHeadwayMutex.lock();
         timeHeadwayMutex.lock();
         if ( (timeHeadway < safeTimeHeadway) &&
-             (timeElapsedSinceAlarm.elapsed() > ALARM_INTERVAL) ) {
-            buf[3] = (char) 1;
-            timeElapsedSinceAlarm.restart();    // don't sound the alarm too often
-        } else {
-            buf[3] = (char) 0;
+             (timeElapsedSinceAlarm.elapsed() > ALARM_INTERVAL) ) {    // don't sound the alarm too often
+            buf[3]++;
+            timeElapsedSinceAlarm.restart();    // we sounded the alarm; reset the timer
         }
         safeTimeHeadwayMutex.unlock();
 
         /* Determine progress bar percent */
         reactionTimeMutex.lock();
-        buf[4] = (char) (100 - (100 / sqrt( 25.4 - reactionTime )) * sqrt( timeHeadway - reactionTime ));
+        buf[4] += (100 - (100 / sqrt( 25.4 - reactionTime )) * sqrt( timeHeadway - reactionTime ));
         reactionTimeMutex.unlock();
 
         /* Set time headway (multiply by 10) */
-        buf[5] = (char) (timeHeadway * 10);
+        buf[5] += (timeHeadway * 10);
         timeHeadwayMutex.unlock();
 
         /* Set lead vehicle velocity */
         leadVehicleVelocityMutex.lock();
-        buf[6] = (char) (leadVehicleVelocity * 5);
+        buf[6] += (leadVehicleVelocity * 5);
         leadVehicleVelocityMutex.unlock();
 
-        arduinoDevice->getReading( buf, sizeof( buf ), &result, sizeof( result ) );
+        qDebug() << buf[0] << (unsigned int) buf[1] << (int) buf[2] << (int) buf[3] << (int) buf[4] << (int) buf[5] << (int) buf[6];
+
+        if ( buf[1] == 2 ) { buf[1] = 1; }
+        if ( buf[2] == 2 ) { buf[2] = 1; }
+        if ( buf[3] == 2 ) { buf[3] = 1; }
+
+        arduinoDevice->getReading( &buf[0], sizeof( buf ), &result, sizeof( result ), 20000 );
 
         /* If sending the command was successful, restart the timer */
         if ( result == 1 ) {
-            qDebug() << "RESTARTING";
             timeElapsedSinceUpdate.restart();
         } else {
             /* We should just immediately send a new command next time */
         }
     }
 
+    qDebug() << "exit AndroidDevice";
     exit( 0 );
 }
 

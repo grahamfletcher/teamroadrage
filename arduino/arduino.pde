@@ -9,8 +9,8 @@
 #define DATA_PIN           10
 #define CLOCK_PIN          11
 #define RAIN_DATA_PIN      A0
-#define BAUD_RATE          115200    // this was too fast earlier, but now it works...
-#define MESSAGE_SIZE       7
+#define BAUD_RATE          57600    // for some reason, 115200 was too fast
+#define MESSAGE_SIZE       7    // length of incoming message from PC
 
 bool accPoweredOn = false;
 
@@ -23,7 +23,7 @@ AndroidAccessory acc( "Google, Inc.",
 
 void setup() {
     Serial.begin( BAUD_RATE );
-    Serial.print( "\r\nStart" );
+    Serial.print( "Start" );
 
     pinMode( 24, INPUT );
     pinMode( 25, INPUT );
@@ -38,18 +38,20 @@ void loop() {
     float temperature;
     float humidity;
     float rainVoltage;
-    float val;
+    int val;
 
     byte command = 0;    // command sent from computer
     byte message[MESSAGE_SIZE];
 
     message[0] = 0xFF;    // lets the Android know where the buffer begins
 
+    /*
     bool androidAvailable = false;
     
     if ( accPoweredOn ) {
         androidAvailable = acc.isConnected();
     }
+    */
 
     while ( Serial.available() > 0 ) {
 
@@ -58,14 +60,18 @@ void loop() {
         switch ( command ) {
 
             case 'z':    // start the Android and return its status
-
                 if ( !accPoweredOn ) {
                     acc.powerOn();
+
+                    while ( !acc.isConnected() ) {    // runs about 530 times
+                        delay( 1 );    // ~530 ms total
+                    }
+                    
                     accPoweredOn = true;
                 }
-
+                
                 Serial.print( (char) acc.isConnected() );
-
+                
                 break;
 
             case 't':    // read temperature
@@ -75,9 +81,9 @@ void loop() {
                 val = getData16SHT( DATA_PIN, CLOCK_PIN );
                 skipCrcSHT( DATA_PIN, CLOCK_PIN );
 
-                temperature = -40.0 + 0.018 * val;
+                temperature = 0.01 * val;    // offset by 40 degrees
 
-                Serial.print( (char) (temperature + 40) );    // offset by 40 to make unsigned
+                Serial.print( (char) temperature );
 
                 break;
 
@@ -90,7 +96,7 @@ void loop() {
 
                 humidity = -4.0 + 0.0405 * val + -0.0000028 * val * val;
 
-                Serial.print( (char) humidity );    // what is the range of humidity?
+                Serial.print( (char) humidity );
 
                 break;
 
@@ -98,7 +104,7 @@ void loop() {
 
                 rainVoltage = analogRead( RAIN_DATA_PIN );
 
-                Serial.print( (char) (0.5 + rainVoltage / 10) );
+                Serial.print( (char) (0.5 + rainVoltage / 10) );    // round to nearest int
 
                 break;
         
@@ -112,13 +118,13 @@ void loop() {
                     message[i] = Serial.read();
                 }
 
-                if ( androidAvailable ) {
+                if ( acc.isConnected() ) {
                     acc.write( message, sizeof( message ) );
         
-                    /* Signal that the message has been sent */
+                    /* Signal that the message wasa sent */
                     Serial.print( (char) 1 );
                 } else {
-                    /* Signal that we failed */
+                    /* Signal that the message wasn't sent */
                     Serial.print( (char) 0 );
                 }
 

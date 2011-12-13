@@ -11,7 +11,8 @@ ACII commands to communicate with serial monitor such as HyperTerminal
 
 int gTempCmd  = 0b00000011;
 int gHumidCmd = 0b00000101;
-  
+
+
 int shiftIn(int dataPin, int clockPin, int numBits)
 {
    int ret = 0;
@@ -27,6 +28,7 @@ int shiftIn(int dataPin, int clockPin, int numBits)
 
    return(ret);
 }
+
 
 void sendCommandSHT(int command, int dataPin, int clockPin)
 {
@@ -62,14 +64,13 @@ void sendCommandSHT(int command, int dataPin, int clockPin)
 
 void waitForResultSHT(int dataPin)
 {
-  int i;
   int ack;
   
   pinMode(dataPin, INPUT);
   
-  for(i= 0; i < 100; ++i)
+  for( int i= 0; i < 100; ++i)
   {
-    delay(10);
+    delay(20);
     ack = digitalRead(dataPin);
 
     if (ack == LOW)
@@ -88,7 +89,7 @@ int getData16SHT(int dataPin, int clockPin)
   // Get the most significant bits
   pinMode(dataPin, INPUT);
   pinMode(clockPin, OUTPUT);
-  val = shiftIn(dataPin, clockPin, 8);
+  val = shiftIn(dataPin, clockPin, 8);//MSBFIRST );//, 8, 3);
   val *= 256;
 
   // Send the required ack
@@ -100,7 +101,7 @@ int getData16SHT(int dataPin, int clockPin)
            
   // Get the lest significant bits
   pinMode(dataPin, INPUT);
-  val |= shiftIn(dataPin, clockPin, 8);
+  val |= shiftIn(dataPin, clockPin, 8);//MSBFIRST );//, 8, 3);
 
   return val;
 }

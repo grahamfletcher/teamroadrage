@@ -5,9 +5,6 @@
 
 SpeedSensor::SpeedSensor( QObject *parent = 0, OBDDevice *obdDevice = 0 ) : QThread( parent ), obdDevice( obdDevice ) {
     shouldContinue = true;
-
-    /* Set correct affinity */
-    //moveToThread( this );
 }
 
 SpeedSensor::~SpeedSensor() {
@@ -18,7 +15,7 @@ SpeedSensor::~SpeedSensor() {
 
 void SpeedSensor::getSpeedFromOBD() {
     /* BEGIN TESTING CODE */
-    float d = 10;
+    /*float d = 10;
 
     while ( shouldContinue ) {
         usleep( 70000 );
@@ -26,7 +23,7 @@ void SpeedSensor::getSpeedFromOBD() {
     }
 
     exit( 0 );
-    return;
+    return;*/
     /* END TESTING CODE */
 
     unsigned char cmd_010D1[] = { '0', '1', '0', 'D', '1', '\r' };
@@ -39,7 +36,9 @@ void SpeedSensor::getSpeedFromOBD() {
     while ( shouldContinue ) {
         if ( !obdDevice->getReading( cmd_010D1, sizeof( cmd_010D1 ), obdResult, sizeof( obdResult ) ) ) {
             /* Getting the reading failed; try again */
-            continue;
+            if ( shouldContinue ) {
+                continue;
+            }
         }
         
         speedBuffer[0] = obdResult[4];
@@ -48,7 +47,7 @@ void SpeedSensor::getSpeedFromOBD() {
         okay = false;
         speed = QString( speedBuffer ).toInt( &okay, 16 );
 
-        if ( okay ) {
+        if ( okay && shouldContinue ) {
             emit gotReading( (float) speed / 3.6 );    // convert to m/s
         } else {
             /* Something went wrong when extracting the speed;
@@ -56,6 +55,7 @@ void SpeedSensor::getSpeedFromOBD() {
         }
     }
 
+    qDebug() << "exit SpeedSensor";
     exit( 0 );
 }
 

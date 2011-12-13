@@ -15,12 +15,17 @@ Controller::Controller( QObject *parent ) : QObject( parent ) {
 
     /* Initialize devices */
     arduinoDevice =       new ArduinoDevice( this );
+    qDebug() << "1";
     androidDevice =       new AndroidDevice( NULL, arduinoDevice );
-    cameraDevice =        new CameraDevice( this );
+    qDebug() << "2";
+    //cameraDevice =        new CameraDevice( this );
+    qDebug() << "3";
     obdDevice =           new OBDDevice( this );
+    qDebug() << "4";
 
     /* Initialize sensors */
     distanceSensor =      new DistanceSensor( NULL );
+    qDebug() << "5";
     humiditySensor =      new HumiditySensor( NULL, arduinoDevice );
     rainSensor =          new RainSensor( NULL, arduinoDevice );
     speedSensor =         new SpeedSensor( NULL, obdDevice );
@@ -31,14 +36,16 @@ Controller::Controller( QObject *parent ) : QObject( parent ) {
     reactionTimeTracker = new ReactionTimeTracker( this );
 
     /* Initialize vision objects */
-    laneDetector        = new LaneDetector( NULL, cameraDevice );
-    vehicleDetector     = new VehicleDetector( this );
+    //laneDetector        = new LaneDetector( NULL, cameraDevice );
+    vehicleDetector     = new VehicleDetector( NULL );
 
     /* Set correct thread affinities */
     moveThreads();
+    qDebug() << "moveThreads()";
 
     /* Connect a zillion signals and slots to make everything work */
     connectSignalsAndSlots();
+    qDebug() << "connectSignalsAndSlots()";
 
     QTimer::singleShot( 500, this, SLOT( startThreads() ) );
 }
@@ -50,22 +57,17 @@ Controller::~Controller() {
     rainSensor->shouldContinue =        false;
     speedSensor->shouldContinue =       false;
     temperatureSensor->shouldContinue = false;
-    laneDetector->shouldContinue =      false;
+    //laneDetector->shouldContinue =      false;
+    vehicleDetector->shouldContinue =   false;
 
     androidDevice->wait();
-    qDebug() << "1";
     distanceSensor->wait();
-    qDebug() << "2";
     humiditySensor->wait();
-    qDebug() << "3";
     rainSensor->wait();
-    qDebug() << "4";
     speedSensor->wait();
-    qDebug() << "5";
     temperatureSensor->wait();
-    qDebug() << "6";
-    laneDetector->wait();
-    qDebug() << "7";
+    //laneDetector->wait();
+    vehicleDetector->wait();
 }
 
 void Controller::startThreads() {
@@ -75,7 +77,8 @@ void Controller::startThreads() {
     rainSensor->start();
     speedSensor->start();
     temperatureSensor->start();
-    laneDetector->start();
+    //laneDetector->start();
+    vehicleDetector->start();
 }
 
 void Controller::moveThreads() {
@@ -85,8 +88,8 @@ void Controller::moveThreads() {
     rainSensor->moveToThread( rainSensor );
     speedSensor->moveToThread( speedSensor );
     temperatureSensor->moveToThread( temperatureSensor );
-    laneDetector->moveToThread( laneDetector );
-
+    //laneDetector->moveToThread( laneDetector );
+    vehicleDetector->moveToThread( vehicleDetector );
 }
 
 void Controller::connectSignalsAndSlots() {
@@ -112,13 +115,21 @@ void Controller::connectSignalsAndSlots() {
                       androidDevice,        SLOT( updateIcePresent( bool ) ),
                       Qt::DirectConnection );
 
-    QObject::connect( headwayKalmanFilter,  SIGNAL( gotLeadVehicleVelocity( float ) ),
-                      androidDevice,        SLOT( updateLeadVehicleVelocity( float ) ),
-                      Qt::DirectConnection );
+    //QObject::connect( headwayKalmanFilter,  SIGNAL( gotLeadVehicleVelocity( float ) ),
+    //                  androidDevice,        SLOT( updateLeadVehicleVelocity( float ) ),
+    //                  Qt::DirectConnection );
 
-    QObject::connect( headwayKalmanFilter,  SIGNAL( gotTimeHeadway( float ) ),
+    //QObject::connect( headwayKalmanFilter,  SIGNAL( gotTimeHeadway( float ) ),
+    //                  androidDevice,        SLOT( updateTimeHeadway( float ) ),
+    //                  Qt::DirectConnection );
+    QObject::connect( distanceSensor,       SIGNAL( gotReading( float ) ),
                       androidDevice,        SLOT( updateTimeHeadway( float ) ),
                       Qt::DirectConnection );
+    QObject::connect( speedSensor,          SIGNAL( gotReading( float ) ),
+                      androidDevice,        SLOT( updateLeadVehicleVelocity( float ) ),
+                      Qt::DirectConnection );
+    //
+    //
 
     QObject::connect( rainSensor,           SIGNAL( gotRainPresent( bool ) ),
                       androidDevice,        SLOT( updateRainPresent( bool ) ),
@@ -216,16 +227,16 @@ void Controller::connectSignalsAndSlots() {
                       Qt::DirectConnection );
 
     QObject::connect( headwayKalmanFilter,  SIGNAL( gotFollowingVehicleAcceleration( float ) ),
-                      guiController,        SLOT( updateFollowingVehicleVelocity( float ) ),
+                      guiController,        SLOT( updateFollowingVehicleAcceleration( float ) ),
                       Qt::DirectConnection );
 
     QObject::connect( reactionTimeTracker,  SIGNAL( gotReactionTime( float ) ),
                       guiController,        SLOT( updateReactionTime( float ) ),
                       Qt::DirectConnection );
 
-    QObject::connect( laneDetector,         SIGNAL( gotFrame( _Mat, int, _QReadWriteLock ) ),
-                      guiController,        SLOT( updateCurrentFrame( _Mat, int, _QReadWriteLock ) ),
-                      Qt::QueuedConnection );
+    //QObject::connect( laneDetector,         SIGNAL( gotFrame( _Mat, int, _QReadWriteLock ) ),
+    //                  guiController,        SLOT( updateCurrentFrame( _Mat, int, _QReadWriteLock ) ),
+    //                  Qt::QueuedConnection );
 
     /* Capture slots */
 

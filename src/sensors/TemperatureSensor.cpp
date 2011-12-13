@@ -8,9 +8,6 @@
 
 TemperatureSensor::TemperatureSensor( QObject *parent = 0, ArduinoDevice *arduinoDevice = 0 ) : QThread( parent ), arduinoDevice( arduinoDevice ) {
     shouldContinue = true;
-
-    /* Set correct affinity */
-    //moveToThread( this );
 }
 
 TemperatureSensor::~TemperatureSensor() {
@@ -21,11 +18,12 @@ TemperatureSensor::~TemperatureSensor() {
 
 void TemperatureSensor::getTemperatureFromArduino() {
     /* BEGIN TESTING CODE */
-    float d = 10;
+    
+    float d = 5;
 
     while ( shouldContinue ) {
         usleep( 70000 );
-        emit gotReading( (d += 0.1) + (qrand() % 9) / 10 );
+        emit gotReading( (d -= 0.1) + (qrand() % 9) / 10 );
     }
 
     exit( 0 );
@@ -37,20 +35,32 @@ void TemperatureSensor::getTemperatureFromArduino() {
     unsigned char result[1];
 
     while ( shouldContinue ) {
-        sleep( 3 );//0 );    // the temperature shouldn't change too quickly
-
         if ( !arduinoDevice->getReading( cmd, sizeof( cmd ), result, sizeof( result ) ) ) {
             /* Getting the reading failed; try again */
-            continue;
+            if ( shouldContinue ) {
+                continue;
+            }
         }
 
-        emit gotReading( (float) result[0] - ICE_OFFSET );
+        if ( shouldContinue ) {
+            emit gotReading( (float) result[0] - ICE_OFFSET );
 
-        if ( (float) result[0] < ICE_THRESHOLD ) {
-            emit gotIcePresent( true );
+            if ( (float) result[0] < ICE_THRESHOLD ) {
+                emit gotIcePresent( true );
+            }
+        }
+
+        // wait 3 seconds
+        for ( int i = 0; i < 6; i++ ) {
+            usleep( 500000 );
+            
+            if ( !shouldContinue ) {
+                break;
+            }
         }
     }
 
+    qDebug() << "exit TemperatureSensor";
     exit( 0 );
 }
 

@@ -42,11 +42,9 @@ private:
     void predict();
 
     QTime timeElapsed;
-    float dt;
 
-    QMutex leadVehicleMutex;
-    bool leadVehiclePresent;
-    bool leadVehicleAligned;
+    QMutex dtMutex;
+    float dt;
 
     QMutex kalmanFilterMutex;
     cv::KalmanFilter kalmanFilter;
@@ -60,7 +58,34 @@ private:
     cv::Mat distanceMeasurement;
     cv::Mat speedMeasurement;
 
+
+    /* The following timers and accumulators are to assiste with smoothing */
+
+    QMutex leadVehiclePresentAlignedMutex;
+    QTime leadVehiclePresentAlignedTimer;
+    float leadVehiclePresentAccumulator;    // will be interpreted as "true" if > LEAD_VEHICLE_PRESENT_THRESHOLD
+    float leadVehicleAlignedAccumulator;    // will be interpreted as "true" if > LEAD_VEHICLE_ALIGNED_THRESHOLD
+
+    //QMutex timeHeadwayMutex;
+    //QTime timeHeadwayTimer;
+    //float timeHeadwayAccumulator;
+
+    QMutex distanceHeadwayMutex;
+    QTime distanceHeadwayTimer;
+    float distanceHeadwayAccumulator;
+
+    QMutex leadVehicleVelocityAccelerationMutex;
+    QTime leadVehicleVelocityAccelerationTimer;
     float leadVehicleVelocityAccumulator;
+    float leadVehicleAccelerationAccumulator;
+
+    QMutex followingVehicleVelocityMutex;
+    QTime followingVehicleVelocityTimer;
+    float followingVehicleVelocityAccumulator;
+
+    //QMutex followingVehicleAccelerationMutex;
+    //QTime followingVehicleAccelerationTimer;
+    //float followingVehicleAccelerationAccumulator;
 };
 #endif
 

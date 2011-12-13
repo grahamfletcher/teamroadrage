@@ -12,13 +12,15 @@
 
 OBDDevice::OBDDevice( QObject *parent = 0 ) : QObject( parent ) {
     /* Create and setup the FTDI context */
-//    setupFTDI();
+    setupFTDI();
+    qDebug() << "setupFTDI()";
 
     /* Setup the OBD interpreter */
-//    setupOBD();
+    setupOBD();
+    qDebug() << "setupOBD()";
 
     /* Flush the read and write buffers, for safety */
-//    ftdi_usb_purge_buffers( ftdi );
+    ftdi_usb_purge_buffers( ftdi );
 
     /* Start the timer */
     timeElapsed.start();
@@ -26,8 +28,8 @@ OBDDevice::OBDDevice( QObject *parent = 0 ) : QObject( parent ) {
 
 OBDDevice::~OBDDevice() {
     /* Release the FTDI context */
-//    ftdi_usb_close( ftdi );
-//    ftdi_free( ftdi );
+    ftdi_usb_close( ftdi );
+    ftdi_free( ftdi );
 
     qDebug() << "~OBDDevice()";
 }

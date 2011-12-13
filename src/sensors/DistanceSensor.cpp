@@ -16,27 +16,25 @@
 DistanceSensor::DistanceSensor( QObject *parent = 0 ) : QThread( parent ) {
     shouldContinue = true;
 
-    intercept = settings->value( "DistanceSensor/intercept" ).toDouble();
-    slope = settings->value( "DistanceSensor/slope" ).toDouble();
-    slope = slope > 0 ? slope : 1;
+    //intercept = settings->value( "DistanceSensor/intercept" ).toDouble();
+    //slope = settings->value( "DistanceSensor/slope" ).toDouble();
+    //slope = slope > 0 ? slope : 1;
+    intercept = 171.5;
+    slope = 4.6;
 
     buf.resize( BUF_SIZE );
 
     /* Create and setup the FTDI context */
-//    setupFTDI();
+    setupFTDI();
 
     /* Flush the read and write buffers, for safety */
-//    ftdi_usb_purge_buffers( ftdi );
-
-
-    /* Set correct affinity */
-    //moveToThread( this );
+    ftdi_usb_purge_buffers( ftdi );
 }
 
 DistanceSensor::~DistanceSensor() {
     /* Release the FTDI context */
-//    ftdi_usb_close( ftdi );
-//    ftdi_free( ftdi );
+    ftdi_usb_close( ftdi );
+    ftdi_free( ftdi );
 
     qDebug() << "~DistanceSensor()";
     shouldContinue = false;
@@ -72,7 +70,7 @@ void DistanceSensor::setupFTDI() {
 
 void DistanceSensor::monitorSerial() {
     /* BEGIN TESTING CODE */
-    float d = 15;
+    /*float d = 15;
 
     while ( shouldContinue ) {
         usleep( 700000 );
@@ -81,7 +79,7 @@ void DistanceSensor::monitorSerial() {
     }
 
     exit( 0 );
-    return;
+    return;*/
     /* END TESTING CODE */
 
 
@@ -91,12 +89,13 @@ void DistanceSensor::monitorSerial() {
         do {
             usleep( (100000 * 8 * BUF_SIZE) / BAUDRATE );
             offset = ftdi_read_data( ftdi, (unsigned char*) buf.data(), BUF_SIZE );
-        } while ( offset < BUF_SIZE );
+            qDebug() << offset;
+        } while ( shouldContinue && offset < BUF_SIZE );
 
         offset = 0;
 
         /* Get rid of any useless or null characters that would mess up the conversion to a string */
-        for ( int i = 0; i < BUF_SIZE; i++ ) {
+        for ( int i = 0; i < BUF_SIZE && shouldContinue; i++ ) {
             char c = buf.data()[i];
             if ( c < 48 || c > 57 ) {
                 buf.data()[i] = '-';
@@ -110,7 +109,8 @@ void DistanceSensor::monitorSerial() {
         if ( reg_exp.indexIn( str, 0 ) != -1 ) {
             bool okay = false;
             int distance = reg_exp.cap( 1 ).toInt( &okay, 10 );
-            if ( okay ) {
+            if ( okay && shouldContinue ) {
+                qDebug() << "DISTANCE:" << (distance - intercept) / slope;
                 emit gotReading( (distance - intercept) / slope );
             } else {
                 /* Couldn't convert the reading to an integer */
@@ -120,6 +120,7 @@ void DistanceSensor::monitorSerial() {
         }
     }
 
+    qDebug() << "exit DistanceSensor";
     exit( 0 );
 }
 

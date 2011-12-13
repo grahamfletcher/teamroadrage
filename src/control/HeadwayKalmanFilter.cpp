@@ -3,9 +3,17 @@
 
 #include "HeadwayKalmanFilter.h"
 
+#define ACCUMULATOR_TIME 500    // accumulator time in ms
+#define LEAD_VEHICLE_PRESENT_THRESHOLD 0.5
+#define LEAD_VEHICLE_ALIGNED_THRESHOLD 0.5
+
+#define ACCUMULATOR_FRACTION_OLD(t) ((float) ( ACCUMULATOR_TIME - qMin( ACCUMULATOR_TIME, t )) / ACCUMULATOR_TIME)
+#define ACCUMULATOR_FRACTION_NEW(t) (1 - ACCUMULATOR_FRACTION_OLD(t))
+#define UPDATE_ACCUMULATOR( accumulator, value, t ) (accumulator = (ACCUMULATOR_FRACTION_OLD( t ) * accumulator) + (ACCUMULATOR_FRACTION_NEW( t ) * ((float) value)))
+
 HeadwayKalmanFilter::HeadwayKalmanFilter( QObject *parent = 0 ) : QObject( parent ) {
     /* Start out assuming there's a lead vehicle? */
-    leadVehiclePresent = true;
+    leadVehiclePresentAccumulator = 1.0;
 
     /* States:  [ currentDistance,
                   previousDistance,
@@ -50,64 +58,96 @@ HeadwayKalmanFilter::~HeadwayKalmanFilter() {
 }
 
 void HeadwayKalmanFilter::updateLeadVehiclePresent( bool vehiclePresent, bool vehicleAligned ) {
-    QMutexLocker locker( &leadVehicleMutex );
+    QMutexLocker locker( &leadVehiclePresentAlignedMutex );
 
-    leadVehiclePresent = vehiclePresent;
+    int t = leadVehiclePresentAlignedTimer.restart();
+    UPDATE_ACCUMULATOR( leadVehiclePresentAccumulator, vehiclePresent, t );
 
-    if ( !vehiclePresent ) {
-        /* If there's no vehicle, the accumulator should be reset */
-        leadVehicleVelocityAccumulator = 0;
-        leadVehicleAligned = false;
-        return;
-    } else {
-        leadVehicleAligned = vehicleAligned;
+    if ( leadVehiclePresentAccumulator > LEAD_VEHICLE_PRESENT_THRESHOLD ) {
+        UPDATE_ACCUMULATOR( leadVehicleAlignedAccumulator, vehicleAligned, t );
     }
 }
 
-void HeadwayKalmanFilter::updateDistanceReading( float distance ) {
-    QMutexLocker locker1( &leadVehicleMutex );
+void HeadwayKalmanFilter::updateDistanceReading( float distance ) {    // distance is in meters
+    /* See if the value is usable */
+    leadVehiclePresentAlignedMutex.lock();
 
-    if ( !(leadVehiclePresent && leadVehicleAligned) ) {
+    if ( (leadVehiclePresentAccumulator < LEAD_VEHICLE_PRESENT_THRESHOLD) || (leadVehicleAlignedAccumulator < LEAD_VEHICLE_ALIGNED_THRESHOLD) ) {
         /* If there's no lead vehicle, or it's not aligned, the measurement is useless */
+        leadVehiclePresentAlignedMutex.unlock();
+
         return;
     }
 
-    QMutexLocker locker2( &kalmanFilterMutex );
+    leadVehiclePresentAlignedMutex.unlock();
+
+
+    /* Predict the current state */
+    kalmanFilterMutex.lock();
 
     predict();
 
     kalmanFilter.measurementMatrix = distanceH;
     kalmanFilter.measurementNoiseCov = distanceR;
 
-    distanceMeasurement.at<float>( 0, 0 ) = distance;
+
+    /* Update the distance accumulator */
+    distanceHeadwayMutex.lock();
+
+    int t = distanceHeadwayTimer.restart();
+    UPDATE_ACCUMULATOR( distanceHeadwayAccumulator, distance, t );
+
+
+    /* Correct the Kalman filter */
+    distanceMeasurement.at<float>( 0, 0 ) = distanceHeadwayAccumulator;
+
+    distanceHeadwayMutex.unlock();
 
     kalmanFilter.correct( distanceMeasurement );
+
+    kalmanFilterMutex.unlock();
 
     emitSignals();
 }
 
-void HeadwayKalmanFilter::updateSpeedReading( const float speed ) {
-    QMutexLocker locker( &kalmanFilterMutex );
+void HeadwayKalmanFilter::updateSpeedReading( const float speed ) {    // speed is in m/s
+    /* Predict the current state */
+    kalmanFilterMutex.lock();
 
     predict();
 
     kalmanFilter.measurementMatrix = speedH;
     kalmanFilter.measurementNoiseCov = speedR;
 
-    speedMeasurement.at<float>( 0, 0 ) = speed;
+
+    /* Update the speed accumulator */
+    followingVehicleVelocityMutex.lock();
+
+    int t = followingVehicleVelocityTimer.restart();
+    UPDATE_ACCUMULATOR( followingVehicleVelocityAccumulator, speed, t );
+
+
+    /* Correct the Kalman filter */
+    speedMeasurement.at<float>( 0, 0 ) = followingVehicleVelocityAccumulator;
+
+    followingVehicleVelocityMutex.unlock();
 
     kalmanFilter.correct( speedMeasurement );
+
+    kalmanFilterMutex.unlock();
 
     emitSignals();
 }
 
 void HeadwayKalmanFilter::emitSignals() {
+    QMutexLocker locker( &dtMutex );
+
     float currentDistance  = kalmanFilter.statePost.at<float>( 0, 0 );
     float previousDistance = kalmanFilter.statePost.at<float>( 1, 0 );
     float currentVelocity  = kalmanFilter.statePost.at<float>( 2, 0 );
     float previousVelocity = kalmanFilter.statePost.at<float>( 3, 0 );
 
-    float timeHeadway = currentVelocity < 1 ? INT_MAX : currentDistance / currentVelocity;
+    float timeHeadway = currentVelocity < 1 ? INT_MAX : (currentDistance / currentVelocity);
     float distanceHeadway = kalmanFilter.statePost.at<float>( 0, 0 );
     float leadVehicleVelocity = ((currentDistance - previousDistance) / dt) + ((currentVelocity + previousVelocity) / 2);
     float leadVehicleAcceleration = 0;    // set below
@@ -115,41 +155,48 @@ void HeadwayKalmanFilter::emitSignals() {
     float followingVehicleAcceleration = kalmanFilter.statePost.at<float>( 2, 0 ) < 1 ? 0 : (currentVelocity - previousVelocity) / dt;
 
     /* Handle all of the tricky stuff for the lead vehicle */
-    leadVehicleMutex.lock();
-    if ( leadVehiclePresent ) {
-        /* We use an accumulator to smooth the data for the lead vehicle velocity; it's really noisy */
+    leadVehiclePresentAlignedMutex.lock();
+    if ( leadVehiclePresentAccumulator > LEAD_VEHICLE_PRESENT_THRESHOLD ) {
+        leadVehicleVelocityAccelerationMutex.lock();
+
         if ( leadVehicleVelocityAccumulator == 0 ) {
-            leadVehicleVelocityAccumulator = leadVehicleVelocity;
+            followingVehicleVelocityMutex.lock();
+            leadVehicleVelocityAccumulator = followingVehicleVelocityAccumulator;
+            followingVehicleVelocityMutex.unlock();
         } else {
-            if ( leadVehicleAligned ) {
+            if ( leadVehicleAlignedAccumulator > LEAD_VEHICLE_ALIGNED_THRESHOLD ) {
                 leadVehicleAcceleration = (leadVehicleVelocity - leadVehicleVelocityAccumulator) / dt;
-                leadVehicleVelocityAccumulator = 0.9 * leadVehicleVelocityAccumulator + 0.1 * leadVehicleVelocity;    // TODO: are these good values?
+
+                int t = leadVehicleVelocityAccelerationTimer.restart();
+                UPDATE_ACCUMULATOR( leadVehicleVelocityAccumulator, leadVehicleVelocity, t );
+                UPDATE_ACCUMULATOR( leadVehicleAccelerationAccumulator, leadVehicleAcceleration, t );
             } else {
                 /* Assume constant velocity; acceleration was already set to zero */
             }
         }
-        emit gotLeadVehicleVelocity( leadVehicleVelocityAccumulator );
-        emit gotLeadVehicleAcceleration( leadVehicleAcceleration );
+
+        leadVehicleVelocityAccelerationMutex.unlock();
     } else {
         /* There's nothing to update */
     }
-    leadVehicleMutex.unlock();
+    leadVehiclePresentAlignedMutex.unlock();
 
     emit gotTimeHeadway( timeHeadway );
     emit gotDistanceHeadway( distanceHeadway );
     emit gotLeadVehicleVelocity( leadVehicleVelocityAccumulator );
-    emit gotLeadVehicleAcceleration( leadVehicleAcceleration );
+    emit gotLeadVehicleAcceleration( leadVehicleAccelerationAccumulator );
     emit gotFollowingVehicleVelocity( followingVehicleVelocity );
     emit gotFollowingVehicleAcceleration( followingVehicleAcceleration );
 }
 
 void HeadwayKalmanFilter::predict() {
-    dt = (float) timeElapsed.elapsed() / 1000;
+    dtMutex.lock();
+    dt = (float) timeElapsed.restart() / 1000;
 
     kalmanFilter.transitionMatrix.at<float>( 0, 2 ) = -dt;
     kalmanFilter.transitionMatrix.at<float>( 0, 3 ) = dt;
 
-    timeElapsed.restart();
+    dtMutex.unlock();
 
     kalmanFilter.predict();
 }

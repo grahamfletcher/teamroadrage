@@ -4,3 +4,4 @@ moc/*
 bin/*
 obj/*
 *.swp
+Makefile
