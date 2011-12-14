@@ -71,24 +71,17 @@ void AndroidDevice::sendDataToAndroid() {
      * buf[5] = (float); time headway * 10
      * buf[6] = (int); lead vehicle velocity * 5
      */
+	int t;
+	unsigned char result = 0;
+	unsigned char command[] = {'c', 0, 0, 0, 0, 0, 0};
 
     /* Start the accessory mode */
-    unsigned char command = 'z';
-    unsigned char result = 0;
-    
-    do {
-        arduinoDevice->getReading( &command, sizeof( command ), &result, sizeof( result ), 2000000 );
-        //usleep( 100000 );
-    } while ( result != 1 && shouldContinue );
+    unsigned char z_command = 'z';
+    arduinoDevice->getReading( &z_command, sizeof( z_command ), &result, sizeof( result ), 550000 );    //just assumed it worked
 
-
-    unsigned char result = 0;
-
-    int t;
+    result = 0; //reset the result
 
     while( shouldContinue ) {
-        unsigned char buf[] = { 'c', 0, 0, 0, 0, 0, 0 };    // 'c' lets the Arduino know the command is destined for Android
-
         t = timeElapsedSinceUpdate.elapsed();
         
         if ( t < UPDATE_INTERVAL ) {
@@ -97,16 +90,14 @@ void AndroidDevice::sendDataToAndroid() {
 
         /* Set ice presence */
         icePresentMutex.lock();
-        if ( icePresent ) {
-            buf[1]++;
-        }
+        command[1] = icePresent ? 1 : 0;
+		
         icePresentMutex.unlock();
         
         /* Set rain presence */
         rainPresentMutex.lock();
-        if ( rainPresent ) {
-            buf[2]++;
-        }
+        command[2] = rainPresent ? 1 : 0;
+		
         rainPresentMutex.unlock();
 
         /* Determine alarm condition */
@@ -114,38 +105,35 @@ void AndroidDevice::sendDataToAndroid() {
         timeHeadwayMutex.lock();
         if ( (timeHeadway < safeTimeHeadway) &&
              (timeElapsedSinceAlarm.elapsed() > ALARM_INTERVAL) ) {    // don't sound the alarm too often
-            buf[3]++;
+            command[3] = 1;
             timeElapsedSinceAlarm.restart();    // we sounded the alarm; reset the timer
-        }
+        } else{
+            command[3] = 0;
+		}
         safeTimeHeadwayMutex.unlock();
 
         /* Determine progress bar percent */
         reactionTimeMutex.lock();
-        buf[4] += (100 - (100 / sqrt( 25.4 - reactionTime )) * sqrt( timeHeadway - reactionTime ));
+        command[4] = qRound( 100 - (100 / sqrt( 25.4 - reactionTime )) * sqrt( timeHeadway - reactionTime ) );
         reactionTimeMutex.unlock();
 
         /* Set time headway (multiply by 10) */
-        buf[5] += (timeHeadway * 10);
+        command[5] = qRound( timeHeadway * 10 );
         timeHeadwayMutex.unlock();
 
         /* Set lead vehicle velocity */
         leadVehicleVelocityMutex.lock();
-        buf[6] += (leadVehicleVelocity * 5);
+        command[6] = qRound( leadVehicleVelocity * 5 );
         leadVehicleVelocityMutex.unlock();
 
-        qDebug() << buf[0] << (unsigned int) buf[1] << (int) buf[2] << (int) buf[3] << (int) buf[4] << (int) buf[5] << (int) buf[6];
 
-        if ( buf[1] == 2 ) { buf[1] = 1; }
-        if ( buf[2] == 2 ) { buf[2] = 1; }
-        if ( buf[3] == 2 ) { buf[3] = 1; }
-
-        arduinoDevice->getReading( &buf[0], sizeof( buf ), &result, sizeof( result ), 20000 );
+        arduinoDevice->getReading( command, sizeof( command ), &result, sizeof( result ), 20000 );
 
         /* If sending the command was successful, restart the timer */
         if ( result == 1 ) {
             timeElapsedSinceUpdate.restart();
         } else {
-            /* We should just immediately send a new command next time */
+            usleep( UPDATE_INTERVAL / 2 );
         }
     }
 

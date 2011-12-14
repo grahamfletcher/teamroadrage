@@ -21,6 +21,7 @@ CameraDevice::CameraDevice( QObject *parent ) : QObject( parent ) {
                            settings->value( "Capture/CropY" ).toInt(),
                            settings->value( "Capture/CropWidth" ).toInt(),
                            settings->value( "Capture/CropHeight" ).toInt() );
+	fps = settings->value("Capture/FPS").toInt();
 }
 
 CameraDevice::~CameraDevice() {
@@ -35,7 +36,7 @@ void CameraDevice::getFrame( cv::Mat &destination ) {
     QMutexLocker locker( &captureMutex );
 
     while ( !capture->read( destination ) ) {
-        usleep( 10000 );    // wait 10 milliseconds
+        usleep( 1000000 / fps );    // wait 10 milliseconds
     }
 
     destination = destination( crop );

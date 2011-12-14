@@ -18,7 +18,7 @@ public:
 
 private:
     QMutex captureMutex;
-
+	int fps;
     cv::VideoCapture *capture;
 
     cv::Rect_<int> crop;

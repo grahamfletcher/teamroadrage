@@ -64,7 +64,7 @@ void SensorsTab::setRawFollowingVehicleVelocity( float velocity ) {
 
 void SensorsTab::setHumidity( float humidity ) {
     QString s;
-    s.sprintf( "%.1f %%", humidity );
+    s.sprintf( "%d %%", (int) humidity );
 
     humidityLabel->setText( s );
 }

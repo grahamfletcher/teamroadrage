@@ -4,7 +4,7 @@
 
 #include "ReactionTimeTracker.h"
 
-#define ACCELERATION_THRESHOLD -2.5
+#define ACCELERATION_THRESHOLD -6.5
 #define DEFAULT_REACTION_TIME 0.7
 
 ReactionTimeTracker::ReactionTimeTracker( QObject *parent ) : QObject( parent ), reactionTimeAccumulator( DEFAULT_REACTION_TIME )  {

@@ -18,7 +18,7 @@ TemperatureSensor::~TemperatureSensor() {
 
 void TemperatureSensor::getTemperatureFromArduino() {
     /* BEGIN TESTING CODE */
-    
+    /*
     float d = 5;
 
     while ( shouldContinue ) {
@@ -28,14 +28,15 @@ void TemperatureSensor::getTemperatureFromArduino() {
 
     exit( 0 );
     return;
+	*/
     /* END TESTING CODE */
 
 
-    unsigned char cmd[] = { 't', '\r' };
-    unsigned char result[1];
+    unsigned char command = 't';
+    unsigned char result;
 
     while ( shouldContinue ) {
-        if ( !arduinoDevice->getReading( cmd, sizeof( cmd ), result, sizeof( result ) ) ) {
+        if ( !arduinoDevice->getReading( &command, sizeof( command ), &result, sizeof( result ) ) ) {
             /* Getting the reading failed; try again */
             if ( shouldContinue ) {
                 continue;
@@ -43,12 +44,12 @@ void TemperatureSensor::getTemperatureFromArduino() {
         }
 
         if ( shouldContinue ) {
-            emit gotReading( (float) result[0] - ICE_OFFSET );
-
-            if ( (float) result[0] < ICE_THRESHOLD ) {
-                emit gotIcePresent( true );
-            }
-        }
+            emit gotReading( (float) result - ICE_OFFSET );
+		}
+        if ( shouldContinue && ((float) result - ICE_OFFSET) < ICE_THRESHOLD ) {
+			emit gotIcePresent( true );
+		}
+        
 
         // wait 3 seconds
         for ( int i = 0; i < 6; i++ ) {

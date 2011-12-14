@@ -31,8 +31,6 @@ public:
 
 signals:
     void gotSafeTimeHeadway( float headway );
-    void gotIcePresent( bool ice );
-    void gotRainPresent( bool rain );
 
 public slots:
     /* RainSensor AND HumiditySensor : this */
@@ -81,6 +79,5 @@ private:
 
     QMutex              rainMutex;
     bool                rainPresent;
-    QTime               rainTimer;
 };
 #endif

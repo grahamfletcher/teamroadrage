@@ -13,24 +13,31 @@
 
 #include <QDebug>
 #include <QMutexLocker>
+#include <QTimer>
 
 #include "globals.h"
 #include "ArduinoDevice.h"
 
+#define BAUD_RATE B57600
+#define MAX_READ_ATTEMPTS 10
+#define READ_DELAY_INTERVAL 10000
 #define DEVICE_PATH "/dev/serial/by-id/usb-Arduino__www.arduino.cc__Arduino_Mega_ADK_64934333235351C0F160-if00"
 
 ArduinoDevice::ArduinoDevice( QObject *parent ) : QObject( parent ) {
-    setupSerial();
+    /* Ensure that the constructor will not block; setup the serial port later */
+    QTimer::singleShot( 0, this, SLOT( setup_serial() ) );
 }
 
 ArduinoDevice::~ArduinoDevice() {
     QMutexLocker locker( &serialMutex );
-    close( fd );
+    if(fd !=0){
+		close(fd);
+		}
     qDebug() << "~ArduinoDevice()";
 }
 
 void ArduinoDevice::setupSerial() {
-
+	QMutexLocker locker(&serialMutex);
     struct termios termOptions;
 
     if ( (fd = open( DEVICE_PATH, O_RDWR | O_NOCTTY | O_NDELAY )) == -1 ) {
@@ -43,10 +50,9 @@ void ArduinoDevice::setupSerial() {
         return;
     }
 
-    cfsetispeed( &termOptions, B57600 );
-    cfsetospeed( &termOptions, B57600 );
-    //cfsetispeed( &termOptions, B115200 );
-    //cfsetospeed( &termOptions, B115200 );
+    cfsetispeed( &termOptions, BAUD_RATE );
+    cfsetospeed( &termOptions, BAUD_RATE );
+
     
     // 8N1
     termOptions.c_cflag &= ~PARENB;
@@ -73,11 +79,17 @@ void ArduinoDevice::setupSerial() {
 }
 
 bool ArduinoDevice::getReading( const unsigned char *command, size_t commandLength, unsigned char *result, size_t resultLength, unsigned int delay ) {
+
+	if(fd == 0){
+	qDebug()<<__FILE__ << __LINE__ << "NULL file descriptor";
+	return false;
+	}
+
     QMutexLocker locker( &serialMutex );
 
     int temp;
 
-    //tcflush( fd, TCIOFLUSH );
+    tcflush( fd, TCIOFLUSH );
 
     if ( commandLength > 0 && command != NULL ) {
         temp = write( fd, command, commandLength );
@@ -90,7 +102,7 @@ bool ArduinoDevice::getReading( const unsigned char *command, size_t commandLeng
     /* Some commands want a response; take care of these */
     if ( resultLength > 0 && result != NULL ) {
         unsigned int offset = 0;
-        unsigned int tries = 0;
+        unsigned int attempts = 0;
 
         usleep( delay );    // sometimes the Arduino takes a while to give back an answer
 
@@ -102,9 +114,9 @@ bool ArduinoDevice::getReading( const unsigned char *command, size_t commandLeng
             }
            
             if ( offset < resultLength ) {
-                usleep( 10000 );    // wait a while longer
+                usleep( READ_DELAY_INTERVAL );    // wait a while longer
 
-                if ( tries++ >= 10 ) {
+                if ( ++attempts >= MAX_READ_ATTEMPTS){
                     qDebug( "Reading serial data failed for command \'%c\'. Expected %d bytes, got %d bytes.", command[0], resultLength, offset );
                     return false;
                 }

@@ -15,6 +15,7 @@ HumiditySensor::~HumiditySensor() {
 
 void HumiditySensor::getHumidityFromArduino() {
     /* BEGIN TESTING CODE */
+	/*
     float d = 10;
 
     while ( shouldContinue ) {
@@ -24,22 +25,24 @@ void HumiditySensor::getHumidityFromArduino() {
 
     exit( 0 );
     return;
+	*/
     /* END TESTING CODE */
 
-    unsigned char cmd[] = { 'h', '\r' };
-    unsigned char result[1];
+    unsigned char command = 'h';
+    unsigned char result;
 
     while ( shouldContinue ) {
-        if ( !arduinoDevice->getReading( cmd, sizeof( cmd ), result, sizeof( result ) ) ) {
+        if ( !arduinoDevice->getReading( &command, sizeof( command ), &result, sizeof( result ) ) ) {
             /* Getting the reading failed; try again */
             if ( shouldContinue ) {
                 continue;
             }
         }
+		if(shouldContinue){
+        emit gotReading( (float) result );
+		}
 
-        emit gotReading( (float) result[0] );
-
-        if ( result[0] > 90 && shouldContinue ) {
+        if ( result > 90 && shouldContinue ) {
             emit gotRainPresent( true );
         }
 

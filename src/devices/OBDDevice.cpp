@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QMutexLocker>
 #include <QString>
+#include <QTimer>
 
 #include "OBDDevice.h"
 
@@ -11,27 +12,30 @@
 #define BAUDRATE 115200
 
 OBDDevice::OBDDevice( QObject *parent = 0 ) : QObject( parent ) {
-    /* Create and setup the FTDI context */
-    setupFTDI();
-    qDebug() << "setupFTDI()";
-
-    /* Setup the OBD interpreter */
-    setupOBD();
-    qDebug() << "setupOBD()";
-
-    /* Flush the read and write buffers, for safety */
-    ftdi_usb_purge_buffers( ftdi );
-
-    /* Start the timer */
+    /* Start the timer so it will be ready by the first request */
     timeElapsed.start();
+
+    /* Ensure that the constructor will not block; defer setup procedures */
+    QTimer::singleShot( 0, this, SLOT( setup() ) );
 }
 
 OBDDevice::~OBDDevice() {
+    QMutexLocker locker( &obdMutex );
+
     /* Release the FTDI context */
     ftdi_usb_close( ftdi );
     ftdi_free( ftdi );
 
     qDebug() << "~OBDDevice()";
+}
+
+void OBDDevice::setup() {
+    QMutexLocker locker( &obdMutex );
+
+	setupFTDI();
+	setupOBD();
+	
+	timeElapsed.start();
 }
 
 void OBDDevice::setupFTDI() {
@@ -59,6 +63,7 @@ void OBDDevice::setupFTDI() {
         qDebug() << __FILE__ << __LINE__ << ": Unable to set line parameters: " << ftdi_get_error_string( ftdi );
         return;
     }
+	ftdi_usb_purge_buffers(ftdi);
 }
 
 void OBDDevice::setupOBD() {

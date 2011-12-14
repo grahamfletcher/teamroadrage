@@ -3,6 +3,7 @@
 
 #include <QSettings>
 #include <QThread>
+#include <QTime>
 
 #include "ArduinoDevice.h"
 
@@ -22,11 +23,15 @@ signals:
 protected:
     void run();
 
+private slots:
+    void getRainFromArduino();
+
 private:
     ArduinoDevice *arduinoDevice;
 
-private slots:
-    void getRainFromArduino();
+    QTime *rainTimer;
+
+    bool rainPresent;
 };
 
 #endif

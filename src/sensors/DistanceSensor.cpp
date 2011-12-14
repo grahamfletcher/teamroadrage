@@ -16,11 +16,10 @@
 DistanceSensor::DistanceSensor( QObject *parent = 0 ) : QThread( parent ) {
     shouldContinue = true;
 
-    //intercept = settings->value( "DistanceSensor/intercept" ).toDouble();
-    //slope = settings->value( "DistanceSensor/slope" ).toDouble();
-    //slope = slope > 0 ? slope : 1;
-    intercept = 171.5;
-    slope = 4.6;
+    intercept = settings->value( "DistanceSensor/intercept" ).toDouble();
+    intercept = intercept > 0 ? intercept : 171.5;
+    slope = settings->value( "DistanceSensor/slope" ).toDouble();
+    slope = slope > 0 ? slope : 4.6;
 
     buf.resize( BUF_SIZE );
 
@@ -89,7 +88,6 @@ void DistanceSensor::monitorSerial() {
         do {
             usleep( (100000 * 8 * BUF_SIZE) / BAUDRATE );
             offset = ftdi_read_data( ftdi, (unsigned char*) buf.data(), BUF_SIZE );
-            qDebug() << offset;
         } while ( shouldContinue && offset < BUF_SIZE );
 
         offset = 0;
@@ -110,8 +108,7 @@ void DistanceSensor::monitorSerial() {
             bool okay = false;
             int distance = reg_exp.cap( 1 ).toInt( &okay, 10 );
             if ( okay && shouldContinue ) {
-                qDebug() << "DISTANCE:" << (distance - intercept) / slope;
-                emit gotReading( (distance - intercept) / slope );
+                emit gotReading( ((float) distance - intercept) / slope );
             } else {
                 /* Couldn't convert the reading to an integer */
             }

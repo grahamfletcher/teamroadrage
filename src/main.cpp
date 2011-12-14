@@ -16,12 +16,15 @@ QSettings *settings;
 void updateSettings() {
     //settings->setValue( "Capture/InputVideoPath", "~/Desktop/in.mkv" );
     settings->setValue( "Capture/FrameWidth", "640" );
-    //settings->setValue( "Capture/FrameHeight", "480" );
-    settings->setValue( "Capture/FrameHeight", "472" );
+    settings->setValue( "Capture/FrameHeight", "480" );
+    //settings->setValue( "Capture/FrameHeight", "472" );
     settings->setValue( "Capture/CropX", "0" );
     settings->setValue( "Capture/CropY", "33" );
     settings->setValue( "Capture/CropWidth", "640" );
     settings->setValue( "Capture/CropHeight", "360" );
+    settings->setValue( "Capture/FPS", "15" );
+    settings->setValue( "DistanceSensor/intercept", "171.5" );
+    settings->setValue( "DistanceSensor/slope", "4.6" );
 }
 
 int main( int argc, char **argv ) {
