@@ -75,6 +75,15 @@ section > h3 {
     margin-bottom: 5px;
 }
 
+section > h4 {
+    color: #072453;
+    font-size: 17px;
+    font-weight: normal;
+    line-height: 24px;
+    margin-bottom: 5px;
+    padding-left: 40px;
+}
+
 section > p {
     font-size: 14px;
     line-height: 22px;
@@ -104,6 +113,18 @@ ul.document_links > li > div.word {
 
 ul.document_links > li > div.pdf {
     background-image: url(../images/icons/Mimes_White_application-pdf.png);
+}
+
+ul.document_links > li > div.tex {
+    background-image: url(../images/icons/Mimes_White_text-x-tex.png);
+}
+
+ul.document_links > li > div.google {
+    background-image: url(../images/icons/google.png);
+}
+
+ul.document_links > li > div.powerpoint {
+    background-image: url(../images/icons/Mimes_White_application-vnd.ms-powerpoint.png);
 }
 
 ul.photo_stack {
