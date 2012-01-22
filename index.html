@@ -5,7 +5,7 @@
 
 <meta charset="utf-8" />
 <meta name="author"   content="Graham Fletcher" />
-<meta name="reply-to" content="graham.fletcher@gatech.edu" />
+<meta name="reply-to" content="grahamfletchergt@gmail.com" />
 
 <link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon-precomposed" href="images/touch-icon.ico" />
@@ -40,13 +40,85 @@
 
 <nav id="coda-nav">
     <ul>
+        <li><a class="xtrig" rel="coda-slider-1" href="#1">overview</a></li>
+        <li><a class="xtrig" rel="coda-slider-1" href="#2">system</a></li>
+        <li><a class="xtrig" rel="coda-slider-1" href="#3">challenges</a></li>
+        <li><a class="xtrig" rel="coda-slider-1" href="#4">media</a></li>
+        <li><a class="xtrig" rel="coda-slider-1" href="#5">documents</a></li>
+
+    <!--
         <li><a class="xtrig" rel="coda-slider-1" href="#1">group photo</a></li>
         <li><a class="xtrig" rel="coda-slider-1" href="#2">deliverables</a></li>
+    -->
     </ul>
 </nav>
 
 <div class="coda-slider preload" id="coda-slider-1">
+    <div class="panel"><div class="panel-wrapper">
+    <section>
+        <h3>Project</h3>
+        <img class="right" src="images/photos/IMG_5309.png" width="300px" height="200px" />
+        <p>In the Fall of 2011, Team Road Rage was formed to solve the problem of developing a collision avoidance system for vehicles that would fulfill the requirements for Georgia Tech’s ECE 4007 Senior design course. The team ultimately created a system that was able to successfully warn drivers when their time headway to a lead vehicle fell below a safe threshold. This minimum safe time headway was dynamically determined based on environmental conditions and the calculated reaction time of the driver.</p>
+    
+        <h3>Motivation</h3>
+        <p>According to the National Safety Council, 26.5 percent of all vehicle crashes are front-to-rear-end. While these crashes are responsible for only 4.3 percent of traffic-related fatalities, they are responsible for one-third of all crash-caused delays, resulting in 157 million vehicle-hours of delay annually. According to police reports, 64 percent of these rear-end collisions were the result of driver inattention, 14 percent were a result of following too closely, 3 percent were due to poor visibility and 2 percent were due to poor judgement.</p>
+        <img class="left" src="images/photos/IMG_5292_2.png" width="300px" height="200px" />
+        <p>Currently available technologies offer lane departure warnings and try to estimate when a driver might be distracted, but are unable to adapt to the driving habits of different users under various circumstances and weather conditions. The system developed could easily be incorporated into future driver assistance packages while minimizing costs through the use of a one-dimensional laser rangefinder and a low-resolution camera. This differs from other systems which use expensive, scanning laser rangefinders or multiple cameras for depth perception.</p>
+    </section>
+	</div></div>
 
+    <div class="panel"><div class="panel-wrapper">
+    <section>
+        <h3>Components</h3>
+        <p>The system consisted of five primary sources of data input: a laser rangefinder, which measured the distance to a lead vehicle; a rain sensor, which detected precipitation on the windshield; an OBD-II scanner, which measured the instantaneous velocity of the vehicle; a temperature sensor, which detected potentially icy conditions and a USB camera that detected and tracked lead vehicles. The primary interface for the driver was an Android mobile phone, which displayed the instantaneous time headway to a lead vehicle and issued auditory alerts through the vehicle’s speaker system.</p>
+        <div class="centered"><img align="middle" src="images/sensors.png" width="699px" height="270px" /></div>
+        <p>Each of the sensors was connected to a controlling laptop, either directly via USB, or indirectly through an Arduino ADK microcontroller. The Arduino also served as a mechanism for forwarding serial communication to the Android mobile phone.</p>
+        
+        <h3>Software</h3>
+        <p>The controlling laptop computer ran a Linux operating system, trimmed down to include only essential features and services. All of the software was written in C++, and made use of several supporting libraries, including Qt, OpenCV, libFTDI and CUDA. The controlling application made use of many threads, allowing each asynchronous component of the system to run on its own time, passing data to the controlling thread only when necessary. The entire architecture was completely modular, with multiple levels of functional abstraction for the various software components and devices interfaces. The following diagram provides a basic overview of the major software components of the system:</p>
+        <div class="centered"><img src="images/software.png" width="717px" height="435px" /></div>
+        <p>The blue components represent system inputs, while the red components represent system outputs. Objects marked with an asterisk represent those whose instances live in their own threads. When new results become available, data is passed across thread boundaries using Qt’s “signals and slots” mechanism. Several classes were created specifically to safeguard data in the multi-threaded environment. For example, the purpose of the “ArduinoDevice” is to make sure that only one object on one thread is allowed to communicate with the Arduino at any given instant. Without this protection, objects on different threads could try to communicate with the Arduino at the same time, which would fail.</p>
+    </section>
+	</div></div>
+
+    <div class="panel"><div class="panel-wrapper">
+    <section>
+        <h3>Asynchronous Sensor Fusion</h3>
+        <p>In order for the system to successfully function in real-time, it was important that each sensor provide updates as often as possible, with minimal latency. To accommodate this requirement, the software was designed to allow each sensor updates to occur asynchronously, with each sensor registering updates as they became available. This wasn’t an issue for those sensors whose readings remained independent of other sensors’ readings (e.g., temperature sensor and rain sensor), but a significant challenge arose when trying to use readings from the speed sensor and distance sensor in conjunction with one another, as they provided updates at different rates. To further complicate the problem, the distance values reported by the laser rangefinder were often known to be invalid. There are many causes for this, but the two most common are poor reflectivity on the lead vehicle (common when following black vehicles) or misalignment, as confirmed through computer vision (common on curved segments of road). Still, it was critical that the system continue to function reliably until the next valid reading could be obtained. A Kalman filter is an ideal solution for such a scenario, as it is able to predict future system states based on past states and is able to detect and compensate for noisy sensors. Unfortunately, a generic Kalman filter requires all sensor readings to be present at the same time for its correction step, as shown below.</p>
+        <div class="centered"><img src="images/kalman1.png" width="400px" height="201px" /></div>
+        <p>To get around this requirement, the team devised a method of modifying the internal parameters of the Kalman filter upon each update, based on which measurements were available. This process is shown below.</p>
+        <div class="centered"><img src="images/kalman2.png" width="730px" height="224px" /></div>
+        <p>The result was an asynchronous fused Kalman filter that allowed sensors to operate at their maximum rates, provided estimates when valid readings were not available and compensated for noisy sensor data.</p>
+        
+        <h3>Safe Time Headway Calculation</h3>
+        <p>One unique aspect of the project was the dynamic determination of what time headway should be maintained in order to be safe. This value was determined based on environmental conditions (wet roads, due to precipitation, and ice) and the reaction time of the driver. This made the system extremely versatile and able to accommodate a wide range of road conditions and drivers with differing levels of awareness.</p>
+        <img class="right" src="images/photos/IMG_5316.png" width="300px" height="200px" />
+        <p>To detect precipitation, an off-the-shelf rain sensor was reverse-engineered and mounted to the inside surface of the windshield. The rain sensor used infrared light to detect changes in the refractive index of the glass, which were caused by the presence of water on the other side. When precipitation was detected multiple times, the safe time headway was increased for the next half-hour. To detect potentially icy conditions, a temperature sensor was placed behind one of the wheel wells, away from the influence of hot engine components. If the temperature dropped below five degrees Celsius, it was assumed that ice could be present, and the safe time headway was increased for the remainder of the trip.</p>
+        <p>To calculate the reaction time of the driver, a custom method was developed that monitored the calculated speed of the lead vehicle, looking for decelerations greater in magnitude than -6 m/s&sup2;. Whenever such decelerations occurred, if the time headway was below a certain threshold, a timer was started that waited for a similar response from the driver of the following vehicle. If the following vehicle did not brake within three seconds, the timer was abandoned. Over time, reaction times calculated using these “braking events” allowed the system to adapt to individual driver.</p>
+        
+        <h3>Alerting the Driver</h3>
+        <p>After thoroughly reviewing many studies which focused on methods for alerting drivers to dangerous conditions, we settled on a hybrid visual and audible approach. We wanted to provide the driver with a real-time visual representation of the relative “safeness” of the current time headway to the lead vehicle, and allow the driver to react, accordingly. If the driver ever allowed the time headway to continue to fall below the minimum safe time headway, an unobtrusive tone was projected through the vehicle’s speaker system.</p>
+        <img class="left" src="images/photos/VID_20111216_143530.png" width="300px" height="200px" />
+        <p>In an end-system, these mechanisms would ideally be incorporated into the actual dashboard, but for development purposes, we thought it ideal to make use of an Android mobile phone for the real-time visual display, and connected its audio output to the auxiliary input of the vehicle’s speaker system. The phone was then strategically mounted in the center of the dash, where it would be readily visible to the driver, but not a distraction. The phone’s display included the current time headway, the calculated velocity of the lead vehicle and a custom indicator that represented the relative “safeness” of the current time headway.</p>
+    </section>
+	</div></div>
+	
+    <div class="panel"><div class="panel-wrapper">
+    <section>
+        The following video is a compilation of some video taken on the day of the final demonstration.
+    </section>
+	</div></div>
+	
+    <div class="panel"><div class="panel-wrapper">
+    <section>
+        <p><a href="documents/proposal/proposal.pdf">Proposal</a></p>
+        <p><a href="https://docs.google.com/present/view?id=dfw8hz5h_7f2xtbfgd">Preliminary Design Review Presentation</a></p>
+        <p><a href="https://docs.google.com/present/view?id=dc4gvbwk_45q2d45hhr">Final Presentation</a></p>
+        <p><a href="documents/final_report/final_report.pdf">Final Report</a></p>
+    </section>
+	</div></div>
+
+    <!--
     <div class="panel"><div class="panel-wrapper">
     <section>
         <p style="text-align:center;"><img src="images/group_photo.png" width="600" height="400" style="text-align:center;" /></p>
@@ -111,13 +183,12 @@
                 <li><div class="word" onclick="window.location.href = 'documents/final_report/final_report.doc';">Word</div></li>
             </ul>
     </section>
-	</div></div>
+	</div></div>-->
 	
 </div>
 
 <footer>
-NOTE: A completed version of this website will be available at<br/>
-<a href="http://grahamfletcher.github.com/teamroadrage/">http://teamroadrage.info/</a>
+Site designed and maintained by <a href="mailto:grahamfletchergt@gmail.com?Subject=teamroadrage.info">Graham Fletcher</a>.
 </footer>
 
 </body>

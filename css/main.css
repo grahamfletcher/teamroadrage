@@ -44,7 +44,7 @@ nav > ul {
 }
 
 nav > ul > li {
-    padding-left: 35px;
+    padding-left: 75px;
     padding-top: 15px;
     font-size: 20px;
     float: left;
@@ -160,88 +160,33 @@ ul.photo_stack > li > div {
     padding: 10px;
 }
 
+img {
+    padding-bottom: 15px;
+}
+
 .left {
     float: left;
+    padding-right: 20px;
+    padding-top: 5px;
 }
 
 .right {
     float: right;
+    padding-left: 20px;
+    padding-top: 5px;
 }
 
-.multimedia_photo_icon {
-    background-image: url(../images/DSLR.svg);
-    height: 180px;
-    margin-right: 25px;
-    width: 165px;
-}
-
-.multimedia_sermon_icon {
-    background-image: url(../images/iPodNano.svg);
-    height: 180px;
-    margin-right: 25px;
-    width: 165px;
-}
-
-.multimedia_video_icon {
-    background-image: url(../images/clapboard.svg);
-    height: 180px;
-    margin-right: 25px;
-    width: 165px;
-}
-
-div.promos {
-    height: 100px;
-    margin: 60px auto auto;
-    width: 880px;
-}
-
-div.promos > div {
-    background-color: white;
-    float: left;
-    height: 100%;
-    overflow: hidden;
-    width: 291px;
-}
-
-div.promos > div:first-child {
-    background-image: url(../images/promo_JCA_Live2011.svg);
-    border-bottom-left-radius: 20px;
-    border-top-left-radius: 20px;
-}
-
-div.promos > div:first-child + div {
-    background-image: url(../images/promo_FamilyGroups.svg);
-    border-color: #ebebeb;
-    border-left-style: solid;
-    border-right-style: solid;
-    border-width: 3px;
-}
-
-div.promos > div:last-child {
-    background-image: url(../images/promo_Quest.svg);
-    border-bottom-right-radius: 20px;
-    border-top-right-radius: 20px;
-}
-
-div.promos > div > div {
-    background-image: url(../images/promo_shine.svg);
-    height: 100%;
-    width: 100%;
-}
-
-div.promos > div:first-child > div {
-    background-position: left;
-}
-
-div.promos > div:first-child + div > div {
-    background-position: center;
-}
-
-div.promos > div:last-child > div  {
-    background-position: right;
+.centered {
+    text-align: center;
 }
 
 footer {
+    color: #333344;
     margin: 120px;
     text-align: center;
+}
+
+a {
+    text-decoration: none;
+    color: #333344;
 }
