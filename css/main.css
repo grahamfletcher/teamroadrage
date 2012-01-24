@@ -166,14 +166,14 @@ img {
 
 .left {
     float: left;
-    padding-right: 20px;
-    padding-top: 5px;
+    margin-right: 20px;
+    margin-top: 5px;
 }
 
 .right {
     float: right;
-    padding-left: 20px;
-    padding-top: 5px;
+    margin-left: 20px;
+    margin-top: 5px;
 }
 
 .centered {
@@ -189,6 +189,18 @@ footer {
 a {
     text-decoration: none;
     color: #333388;
+}
+
+a[rel="lightbox"] img, ul.gallery img {
+    border: solid 1px #EFEFEF;
+    padding: 5px;
+}
+
+a[rel="lightbox"]:hover img, ul.gallery > li:hover img {
+	border: solid 1px #CCC;
+	-moz-box-shadow: 1px 1px 5px #999;
+	-webkit-box-shadow: 1px 1px 5px #999;
+    box-shadow: 1px 1px 5px #999;
 }
 
 .youtube-container {
