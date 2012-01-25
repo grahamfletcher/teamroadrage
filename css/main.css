@@ -208,6 +208,10 @@ a[rel="lightbox"]:hover img, ul.gallery > li:hover img {
     text-align: center;
 }
 
+.youtube-player {
+    border: none;
+}
+
 ul.gallery {
     list-style: none;
 }
